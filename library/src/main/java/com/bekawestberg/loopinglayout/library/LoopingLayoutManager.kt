@@ -334,7 +334,7 @@ class LoopingLayoutManager : LayoutManager {
         val isTowardsBottomRight = direction == TOWARDS_BOTTOM_RIGHT
         val isTowardsHigherIndices = adapterDirection == TOWARDS_HIGHER_INDICES
         val isTowardsLowerIndices = adapterDirection == TOWARDS_LOWER_INDICES
-        
+
         when {
             isTowardsTopLeft && isTowardsHigherIndices -> {
                 mTopLeftIndex = index.loopedIncrement(count)
@@ -390,6 +390,10 @@ class LoopingLayoutManager : LayoutManager {
             isHorizontal && isTowardsBottomRight && isRTL && isReversed -> TOWARDS_HIGHER_INDICES
             else -> throw IllegalStateException("Invalid movement state.")
         }
+    }
+
+    fun convertAdapterDirToMovementDir(direction: Int): Int {
+        return getMovementDirectionFromAdapterDirection(direction)
     }
 
     /**
@@ -515,6 +519,35 @@ class LoopingLayoutManager : LayoutManager {
         } else {
             getDecoratedBottom(view) >= 0 && getDecoratedTop(view) <= height
         }
+    }
+
+    fun getAnchorChild(): View {
+        val dir = getMovementDirectionFromAdapterDirection(TOWARDS_LOWER_INDICES)
+        return if (dir == TOWARDS_TOP_LEFT) {
+            getChildAt(0)!!  // Should never be null.
+        } else {
+            getChildAt(childCount - 1)!!  // Should never be null.
+        }
+    }
+
+    fun getOptAnchorChild(): View {
+        val dir = getMovementDirectionFromAdapterDirection(TOWARDS_HIGHER_INDICES)
+        return if (dir == TOWARDS_TOP_LEFT) {
+            getChildAt(0)!!  // Should never be null.
+        } else {
+            getChildAt(childCount - 1)!! // Should never be null.
+        }
+    }
+
+    override fun findViewByPosition(adapterIndex: Int): View? {
+        return findViewByPosition(adapterIndex, ::childClosestToMiddle);
+    }
+
+    fun findViewByPosition(
+            adapterIndex: Int,
+            strategy: (targetIndex: Int, layoutManager: LoopingLayoutManager) -> View?
+    ): View? {
+        return strategy(adapterIndex, this)
     }
 
     /**
