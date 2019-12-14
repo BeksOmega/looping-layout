@@ -20,6 +20,13 @@ package com.bekawestberg.loopinglayout.library
 import android.view.View
 import kotlin.math.abs
 
+/**
+ * @return A view with the given adapter index. If there are multiple views associated with the
+ * given index, this returns the view closest to the anchor edge.
+ *
+ * The anchor edge is the edge the view associated with index 0 would be initially laid out
+ * against. For example: In a RTL horizontal layout, the anchor edge would be the right edge.
+ */
 fun childClosestToAnchorEdge(
         targetAdapterIndex: Int,
         layoutManager: LoopingLayoutManager
@@ -41,6 +48,10 @@ fun childClosestToAnchorEdge(
     return null
 }
 
+/**
+ * @return A view with the given adapter index. If there are multiple views associated with the
+ * given index, this returns the view whose middle is closest to the middle of the layout.
+ */
 fun childClosestToMiddle(
         targetAdapterIndex: Int,
         layoutManager: LoopingLayoutManager
