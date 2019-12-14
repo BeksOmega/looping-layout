@@ -69,7 +69,7 @@ class FindViewClosestToAnchorTest {
         setUpAdapter(RecyclerView.HORIZONTAL)
         setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         // Scroll the recycler so that the second zero item is completely visible, and as such
-        // the other item is only partially visible.
+        // the first item is only partially visible.
         onView(withId(R.id.recycler))
                 .perform(scrollBy(x = visiblePortionOfSecondZeroItem))
 
@@ -91,7 +91,7 @@ class FindViewClosestToAnchorTest {
         setUpAdapter(RecyclerView.HORIZONTAL)
         setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         // Scroll the recycler so that the second zero item is completely visible, and as such
-        // the other item is only partially visible.
+        // the first item is only partially visible.
         onView(withId(R.id.recycler))
                 .perform(scrollBy(x = -visiblePortionOfSecondZeroItem))
 
@@ -115,8 +115,7 @@ class FindViewClosestToAnchorTest {
         setUpAdapter(RecyclerView.HORIZONTAL)
         setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         // Scroll the recycler so that the second zero item is completely visible, and as such
-        // the other item is only partially visible.
-        
+        // the first item is only partially visible.
         onView(withId(R.id.recycler))
                 .perform(scrollBy(x = -visiblePortionOfSecondZeroItem))
 
@@ -140,7 +139,7 @@ class FindViewClosestToAnchorTest {
         setUpAdapter(RecyclerView.HORIZONTAL)
         setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         // Scroll the recycler so that the second zero item is completely visible, and as such
-        // the other item is only partially visible.
+        // the first item is only partially visible.
         onView(withId(R.id.recycler))
                 .perform(scrollBy(x = visiblePortionOfSecondZeroItem))
 
@@ -162,7 +161,7 @@ class FindViewClosestToAnchorTest {
         setUpAdapter(RecyclerView.VERTICAL)
         setLayoutManager(LoopingLayoutManager.VERTICAL, false)
         // Scroll the recycler so that the second zero item is completely visible, and as such
-        // the other item is only partially visible.
+        // the first item is only partially visible.
         onView(withId(R.id.recycler))
                 .perform(scrollBy(y = visiblePortionOfSecondZeroItem))
 
@@ -184,7 +183,7 @@ class FindViewClosestToAnchorTest {
         setUpAdapter(RecyclerView.VERTICAL)
         setLayoutManager(LoopingLayoutManager.VERTICAL, true)
         // Scroll the recycler so that the second zero item is completely visible, and as such
-        // the other item is only partially visible.
+        // the first item is only partially visible.
         onView(withId(R.id.recycler))
                 .perform(scrollBy(y = -visiblePortionOfSecondZeroItem))
 
@@ -193,11 +192,11 @@ class FindViewClosestToAnchorTest {
     }
 
     private fun setUpAdapter(orientation: Int) {
-        val sizeOfOneView = calculateSizeOfOneView(orientation)
-        setAdapter(arrayOf("0", "1"), arrayOf(sizeOfZeroItem, sizeOfOneView))
+        val sizeOfOneItem = calculateSizeOfOneItem(orientation)
+        setAdapter(arrayOf("0", "1"), arrayOf(sizeOfZeroItem, sizeOfOneItem))
     }
 
-    private fun calculateSizeOfOneView(orientation: Int): Int {
+    private fun calculateSizeOfOneItem(orientation: Int): Int {
         val activity = activityRule.activity
         val recycler = activity.findViewById<RecyclerView>(R.id.recycler) ?: return 0
         return if (orientation == RecyclerView.HORIZONTAL) {

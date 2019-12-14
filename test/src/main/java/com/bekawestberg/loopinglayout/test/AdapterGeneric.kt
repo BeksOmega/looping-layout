@@ -17,7 +17,6 @@
 
 package com.bekawestberg.loopinglayout.test
 
-import android.app.ActionBar
 import android.graphics.Color
 import android.util.Log
 import android.view.LayoutInflater

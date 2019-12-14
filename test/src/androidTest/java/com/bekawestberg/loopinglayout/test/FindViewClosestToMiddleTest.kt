@@ -192,11 +192,11 @@ class FindViewClosestToMiddleTest {
     }
 
     private fun setUpAdapter(orientation: Int) {
-        val sizeOfOneView = calculateSizeOfOneView(orientation)
-        setAdapter(arrayOf("0", "1"), arrayOf(sizeOfZeroItem, sizeOfOneView))
+        val sizeOfOneItem = calculateSizeOfOneItem(orientation)
+        setAdapter(arrayOf("0", "1"), arrayOf(sizeOfZeroItem, sizeOfOneItem))
     }
 
-    private fun calculateSizeOfOneView(orientation: Int): Int {
+    private fun calculateSizeOfOneItem(orientation: Int): Int {
         val activity = activityRule.activity
         val recycler = activity.findViewById<RecyclerView>(R.id.recycler) ?: return 0
         return if (orientation == RecyclerView.HORIZONTAL) {
