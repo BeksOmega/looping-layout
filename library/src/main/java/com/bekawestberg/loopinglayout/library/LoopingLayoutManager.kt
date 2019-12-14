@@ -334,7 +334,7 @@ class LoopingLayoutManager : LayoutManager {
         val isTowardsBottomRight = direction == TOWARDS_BOTTOM_RIGHT
         val isTowardsHigherIndices = adapterDirection == TOWARDS_HIGHER_INDICES
         val isTowardsLowerIndices = adapterDirection == TOWARDS_LOWER_INDICES
-        
+
         when {
             isTowardsTopLeft && isTowardsHigherIndices -> {
                 mTopLeftIndex = index.loopedIncrement(count)
@@ -390,6 +390,20 @@ class LoopingLayoutManager : LayoutManager {
             isHorizontal && isTowardsBottomRight && isRTL && isReversed -> TOWARDS_HIGHER_INDICES
             else -> throw IllegalStateException("Invalid movement state.")
         }
+    }
+
+    /**
+     * Converts an adapter direction ([.TOWARDS_HIGHER_INDICES] or [.TOWARDS_LOWER_INDICES]) to
+     * a movement direction. A movement direction tells us which direction we should traverse
+     * the views in (first -> last or last -> first) so that we are traversing in the given
+     * adapter direction.
+     * @param direction The direction we want to traverse the adapter indices in.
+     * Either [.TOWARDS_HIGHER_INDICES] or [.TOWARDS_LOWER_INDICES].
+     * @return The direction we need to traverse the views in to get to adapter indices in the
+     * given direction.
+     */
+    fun convertAdapterDirToMovementDir(direction: Int): Int {
+        return getMovementDirectionFromAdapterDirection(direction)
     }
 
     /**
@@ -515,6 +529,34 @@ class LoopingLayoutManager : LayoutManager {
         } else {
             getDecoratedBottom(view) >= 0 && getDecoratedTop(view) <= height
         }
+    }
+
+    /**
+     * Finds the view with the given adapter position.
+     *
+     * If there are multiple views representing the same adapter position, this returns the
+     * view whose middle is closest to the middle of the recycler. If you would like to use a
+     * different tie-breaker you may pass a function to do so.
+     * @param adapterIndex The adapter index of the view we want to find.
+     * @return A view with the given adapter position.
+     */
+    override fun findViewByPosition(adapterIndex: Int): View? {
+        return findViewByPosition(adapterIndex, ::childClosestToMiddle);
+    }
+
+    /**
+     * Finds the view with the given adapter position. You must provide a function to decide which
+     * view to return in the case that there are multiple views associated with the same adapter
+     * position.
+     * @param adapterIndex The adapter index of the view we want to find.
+     * @param strategy The strategy for determining which view to return.
+     * @return A view with the given adapter position.
+     */
+    fun findViewByPosition(
+            adapterIndex: Int,
+            strategy: (targetIndex: Int, layoutManager: LoopingLayoutManager) -> View?
+    ): View? {
+        return strategy(adapterIndex, this)
     }
 
     /**
