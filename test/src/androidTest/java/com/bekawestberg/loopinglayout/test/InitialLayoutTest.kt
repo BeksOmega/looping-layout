@@ -30,6 +30,7 @@ import androidx.test.rule.ActivityTestRule
 import com.bekawestberg.loopinglayout.test.androidTest.utils.setLayoutManager
 import com.bekawestberg.loopinglayout.test.androidTest.utils.setRtl
 import com.bekawestberg.loopinglayout.library.LoopingLayoutManager
+import com.bekawestberg.loopinglayout.test.androidTest.utils.setAdapter
 import org.hamcrest.Matcher
 import org.junit.Rule
 import org.junit.Test

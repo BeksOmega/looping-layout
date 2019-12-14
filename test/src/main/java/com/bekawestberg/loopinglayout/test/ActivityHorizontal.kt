@@ -30,7 +30,7 @@ class ActivityHorizontal : AppCompatActivity() {
     private var mAdapter: AdapterGeneric = AdapterGeneric(
             arrayOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"/**/))
     private var mLayoutManager =
-            LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)
+            LoopingLayoutManager(this, RecyclerView.HORIZONTAL, false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

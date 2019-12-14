@@ -17,6 +17,7 @@
 
 package com.bekawestberg.loopinglayout.test
 
+import android.app.ActionBar
 import android.graphics.Color
 import android.util.Log
 import android.view.LayoutInflater
@@ -24,8 +25,10 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class AdapterGeneric// Provide a suitable constructor (depends on the kind of dataset)
-(private val mDataset: Array<String>) : RecyclerView.Adapter<AdapterGeneric.MyViewHolder>() {
+class AdapterGeneric (
+        private val mDataset: Array<String>,
+        private var mSizes: Array<Int>? = null
+): RecyclerView.Adapter<AdapterGeneric.MyViewHolder>() {
 
     // Provide a reference to the views for each data item
     // Complex data items may need more than one view per item, and
@@ -45,6 +48,7 @@ class AdapterGeneric// Provide a suitable constructor (depends on the kind of da
                 (Math.random() * 200).toInt() + 55,
                 (Math.random() * 200).toInt() + 55)
         v.setBackgroundColor(color)
+
         return MyViewHolder(v)
     }
 
@@ -52,7 +56,14 @@ class AdapterGeneric// Provide a suitable constructor (depends on the kind of da
     override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
         // - get element from your data set at this position
         // - replace the contents of the view with that element
-        holder.textView.text = mDataset[position]
+        val v = holder.textView
+        v.text = mDataset[position]
+
+        val params = v.layoutParams
+        params.width = mSizes?.get(position) ?: 250
+        params.height = mSizes?.get(position) ?: 250
+        v.layoutParams = params
+
         Log.v(TAG, "binding")
     }
 
