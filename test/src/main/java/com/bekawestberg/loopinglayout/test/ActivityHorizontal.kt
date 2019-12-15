@@ -19,8 +19,11 @@ package com.bekawestberg.loopinglayout.test
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bekawestberg.loopinglayout.library.LoopingLayoutManager
+import com.bekawestberg.loopinglayout.library.addViewsAtAnchorEdge
+import com.bekawestberg.loopinglayout.library.estimateShortestRoute
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class ActivityHorizontal : AppCompatActivity() {
@@ -42,6 +45,6 @@ class ActivityHorizontal : AppCompatActivity() {
         mRecyclerView.adapter = mAdapter
 
         val button = findViewById<FloatingActionButton>(R.id.fab)
-        button.setOnClickListener { mRecyclerView.scrollToPosition(15) }
+        button.setOnClickListener { mLayoutManager.scrollToPosition(7, ::estimateShortestRoute) }
     }
 }
