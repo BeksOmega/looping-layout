@@ -485,8 +485,8 @@ class LoopingLayoutManager : LayoutManager {
             isHorizontal && isTowardsHigher && isRTL && isReversed -> TOWARDS_BOTTOM_RIGHT
             isHorizontal && isTowardsLower && isLTR && isNotReversed -> TOWARDS_TOP_LEFT
             isHorizontal && isTowardsLower && isLTR && isReversed -> TOWARDS_BOTTOM_RIGHT
-            isHorizontal && isTowardsLower && isRTL && isNotReversed -> TOWARDS_TOP_LEFT
-            isHorizontal && isTowardsLower && isRTL && isReversed -> TOWARDS_BOTTOM_RIGHT
+            isHorizontal && isTowardsLower && isRTL && isNotReversed -> TOWARDS_BOTTOM_RIGHT
+            isHorizontal && isTowardsLower && isRTL && isReversed -> TOWARDS_TOP_LEFT
             else -> throw IllegalStateException("Invalid adapter state.")
         }
     }

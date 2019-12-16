@@ -19,7 +19,9 @@ fun addViewsAtAnchorEdge(
         layoutManager: LoopingLayoutManager,
         state: RecyclerView.State
 ): Int {
-    return layoutManager.convertAdapterDirToMovementDir(LoopingLayoutManager.TOWARDS_LOWER_INDICES)
+    val dir = layoutManager.convertAdapterDirToMovementDir(LoopingLayoutManager.TOWARDS_LOWER_INDICES)
+    Log.v("DirectionDecider", "$dir")
+    return dir
 }
 
 fun addViewsAtOptAnchorEdge(
@@ -37,10 +39,14 @@ fun estimateShortestRoute(
 ): Int {
     // Special case the view being partially visible.
     if (layoutManager.topLeftIndex == adapterIndex) {
+        Log.v("DirectionalDeciders", "topLeft is equal")
         return LoopingLayoutManager.TOWARDS_TOP_LEFT
     } else if (layoutManager.bottomRightIndex == adapterIndex) {
+        Log.v("DirectionalDeciders", "bottomRight is equal")
         return LoopingLayoutManager.TOWARDS_BOTTOM_RIGHT
     }
+
+    Log.v("DirectionalDeciders", "neither is equal")
 
     val (topLeftInLoopDist, topLeftOverSeamDist) = calculateDistances(
             adapterIndex, layoutManager.topLeftIndex, state.itemCount)

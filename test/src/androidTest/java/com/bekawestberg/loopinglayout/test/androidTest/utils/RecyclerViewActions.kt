@@ -29,6 +29,9 @@ import androidx.test.espresso.util.HumanReadables
 import org.hamcrest.Matcher
 
 import androidx.test.espresso.matcher.ViewMatchers.isAssignableFrom
+import com.bekawestberg.loopinglayout.library.LoopingLayoutManager
+import com.bekawestberg.loopinglayout.library.addViewsAtAnchorEdge
+import com.bekawestberg.loopinglayout.library.defaultDecider
 
 object RecyclerViewActions {
     fun setLayoutManager(manager: RecyclerView.LayoutManager): ViewAction {
@@ -118,6 +121,34 @@ object RecyclerViewActions {
                         .withCause(e)
                         .build()
             }
+        }
+    }
+
+    fun scrollToPositionViaManager(
+            position: Int,
+            strategy: (Int, LoopingLayoutManager, RecyclerView.State) -> Int = ::defaultDecider
+    ): ViewAction {
+        return ScrollToPositionViaManagerAction(position, strategy)
+    }
+
+    class ScrollToPositionViaManagerAction(
+            val position: Int,
+            val strategy: (Int, LoopingLayoutManager, RecyclerView.State) -> Int
+    ) : ViewAction {
+
+        override fun getConstraints(): Matcher<View> {
+            return isAssignableFrom(RecyclerView::class.java)
+        }
+
+        override fun getDescription(): String {
+            return "Could not scroll the recycler."
+        }
+
+        override fun perform(uiController: UiController, view: View) {
+            val recyclerView = view as RecyclerView
+            (recyclerView.layoutManager as LoopingLayoutManager)
+                    .scrollToPosition(position, strategy)
+            uiController.loopMainThreadUntilIdle()
         }
     }
 }
