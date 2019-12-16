@@ -1,11 +1,15 @@
 package com.bekawestberg.loopinglayout.library
 
-import android.util.Log
 import androidx.recyclerview.widget.RecyclerView
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 
+/**
+ * The default decider used when one is not provided.
+ *
+ * @return A movement direction that should be used to "scroll" to the given adapter index.
+ */
 fun defaultDecider(
         adapterIndex: Int,
         layoutManager: LoopingLayoutManager,
@@ -14,16 +18,27 @@ fun defaultDecider(
     return estimateShortestRoute(adapterIndex, layoutManager, state)
 }
 
+/**
+ * @return A movement direction that should be used to "scroll" to the given adapter index.
+ *         This function always returns the direction associated with creating views at the
+ *         anchor edge. The anchor edge being the edge the 0 indexed view was aligned with when
+ *         the recycler was initially laid out.
+ */
 fun addViewsAtAnchorEdge(
         adapterIndex: Int,
         layoutManager: LoopingLayoutManager,
         state: RecyclerView.State
 ): Int {
     val dir = layoutManager.convertAdapterDirToMovementDir(LoopingLayoutManager.TOWARDS_LOWER_INDICES)
-    Log.v("DirectionDecider", "$dir")
     return dir
 }
 
+/**
+ * @return A movement direction that should be used to "scroll" to the given adapter index.
+ *         This function always returns the direction associated with creating views at the edge
+ *         opposite the anchor edge. The anchor edge being the edge the 0 indexed view was aligned with when
+ *         the recycler was initially laid out.
+ */
 fun addViewsAtOptAnchorEdge(
         adapterIndex: Int,
         layoutManager: LoopingLayoutManager,
@@ -32,6 +47,13 @@ fun addViewsAtOptAnchorEdge(
     return layoutManager.convertAdapterDirToMovementDir(LoopingLayoutManager.TOWARDS_HIGHER_INDICES)
 }
 
+/**
+ * @return A movement direction that should be used to "scroll" to the given adapter index.
+ *         This function estimates which direction puts the view on screen with the least amount
+ *         of scrolling. It is an estimation because the function assumes all views are the same
+ *         size. If some views are larger or smaller than others, this may not return the correct
+ *         direction.
+ */
 fun estimateShortestRoute(
         adapterIndex: Int,
         layoutManager: LoopingLayoutManager,
@@ -39,14 +61,10 @@ fun estimateShortestRoute(
 ): Int {
     // Special case the view being partially visible.
     if (layoutManager.topLeftIndex == adapterIndex) {
-        Log.v("DirectionalDeciders", "topLeft is equal")
         return LoopingLayoutManager.TOWARDS_TOP_LEFT
     } else if (layoutManager.bottomRightIndex == adapterIndex) {
-        Log.v("DirectionalDeciders", "bottomRight is equal")
         return LoopingLayoutManager.TOWARDS_BOTTOM_RIGHT
     }
-
-    Log.v("DirectionalDeciders", "neither is equal")
 
     val (topLeftInLoopDist, topLeftOverSeamDist) = calculateDistances(
             adapterIndex, layoutManager.topLeftIndex, state.itemCount)
@@ -55,8 +73,6 @@ fun estimateShortestRoute(
     val (bottomRightInLoopDist, bottomRightOverSeamDist) = calculateDistances(
             adapterIndex, layoutManager.bottomRightIndex, state.itemCount)
     val bottomRightTargetSmaller = adapterIndex < layoutManager.bottomRightIndex
-
-    Log.v("DirectionDeciders", "$topLeftInLoopDist $topLeftOverSeamDist $bottomRightInLoopDist $bottomRightOverSeamDist")
 
     val minDist = arrayOf(topLeftInLoopDist, topLeftOverSeamDist,
             bottomRightInLoopDist, bottomRightOverSeamDist).min()
@@ -72,8 +88,6 @@ fun estimateShortestRoute(
         else -> throw IllegalStateException()  // Should never happen.
     }
     val targetIsLarger = !targetIsSmaller
-
-    Log.v("DirectionDeciders", "is in loop? $minDistIsInLoop target smaller? $targetIsSmaller")
 
     val adapterDir = when {
         targetIsSmaller && minDistIsInLoop -> LoopingLayoutManager.TOWARDS_LOWER_INDICES

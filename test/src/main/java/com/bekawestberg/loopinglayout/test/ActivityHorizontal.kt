@@ -19,18 +19,15 @@ package com.bekawestberg.loopinglayout.test
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bekawestberg.loopinglayout.library.LoopingLayoutManager
 import com.bekawestberg.loopinglayout.library.addViewsAtAnchorEdge
-import com.bekawestberg.loopinglayout.library.estimateShortestRoute
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class ActivityHorizontal : AppCompatActivity() {
     private lateinit var mRecyclerView: RecyclerView
     private var mAdapter: AdapterGeneric = AdapterGeneric(
             arrayOf("0", "1", "2"/*, "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"*/))
-
     private var mLayoutManager =
             LoopingLayoutManager(this, RecyclerView.HORIZONTAL, false)
 

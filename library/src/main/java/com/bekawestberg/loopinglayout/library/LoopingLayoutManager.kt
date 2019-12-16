@@ -35,9 +35,15 @@ import kotlin.math.min
 
 class LoopingLayoutManager : LayoutManager {
 
-
-
+    /**
+     * When LayoutManager needs to scroll to a position, it sets this variable and requests a
+     * layout which will check this variable and re-layout accordingly.
+     */
     private var mPendingScrollPosition = RecyclerView.NO_POSITION
+    /**
+     * When the layout manager needs to scroll to a position, it needs some method to decide which
+     * direction to scroll in. This variable stores that method.
+     */
     private var mPendingScrollStrategy: (Int, LoopingLayoutManager, RecyclerView.State) -> Int =
             ::defaultDecider
 
@@ -148,6 +154,9 @@ class LoopingLayoutManager : LayoutManager {
         layoutAnew(recycler, state)
     }
 
+    /**
+     * Lays out the views by scrapping the current ones (if any exist) and starting from scratch.
+     */
     private fun layoutAnew(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
         detachAndScrapAttachedViews(recycler)
         var layoutRect = nonScrollingEdges
@@ -179,6 +188,13 @@ class LoopingLayoutManager : LayoutManager {
         }
     }
 
+    /**
+     * Lays out items until it reaches the target index ([.mPendingScrollPosition]).
+     *
+     * The position new items are added in is determined by the [.mPendingScrollStrategy].
+     *
+     * @see [.scrollToPosition]
+     */
     private fun layoutToPosition(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
         if (mPendingScrollPosition < 0 || mPendingScrollPosition > state.itemCount) {
             return;
@@ -609,6 +625,9 @@ class LoopingLayoutManager : LayoutManager {
         return strategy(adapterIndex, this)
     }
 
+    /**
+     * @return All views associated with the given adapter index.
+     */
     private fun findAllViewsWithPosition(adapterIndex: Int): Iterable<View> {
         val views = mutableListOf<View>()
         for (i in 0 until childCount) {
@@ -620,10 +639,31 @@ class LoopingLayoutManager : LayoutManager {
         return views;
     }
 
+
+    /**
+     * Scrolls the layout to make the given position visible. If a view associated with the index
+     * is already entirely visible, nothing will change.
+     *
+     * By default this will estimate the shortest distance needed to make the view visible. But if
+     * some views are smaller or larger than others, the estimation may be incorrect.
+     *
+     * Note that this change will not be reflected until the next layout call.
+     * @param adapterIndex The adapter index to make visible.
+     */
     override fun scrollToPosition(adapterIndex: Int) {
         scrollToPosition(adapterIndex, ::defaultDecider)
     }
 
+    /**
+     * Scrolls the layout to make the given position visible. If a view associated with the index
+     * is already entirely visible, nothing will change.
+     *
+     * The views could be scrolled in either direction to make the target visible, so you must pass
+     * a function to determine which direction the recycler should be moved in. It should return
+     * either [.TOWARD_TOP_LEFT] or [.TOWARD_BOTTOM_RIGHT].
+     * @param adapterIndex The adapter index to make visible.
+     * @param strategy The strategy used to determine which direction to move the views in.
+     */
     fun scrollToPosition(
             adapterIndex: Int,
             strategy: (
