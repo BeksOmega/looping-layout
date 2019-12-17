@@ -19,19 +19,15 @@ package com.bekawestberg.loopinglayout.library
 
 import android.content.Context
 import android.graphics.Rect
+import android.util.AttributeSet
+import android.view.View
+import android.view.ViewGroup
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.OrientationHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.LayoutManager
 import androidx.recyclerview.widget.RecyclerView.LayoutParams
-import android.util.AttributeSet
-import android.util.Log
-import android.view.View
-import android.view.ViewGroup
-import androidx.core.view.isVisible
 import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
 
 class LoopingLayoutManager : LayoutManager {
 
@@ -196,17 +192,16 @@ class LoopingLayoutManager : LayoutManager {
      * @see [.scrollToPosition]
      */
     private fun layoutToPosition(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
-        if (mPendingScrollPosition < 0 || mPendingScrollPosition > state.itemCount) {
+        if (mPendingScrollPosition < 0 || mPendingScrollPosition >= state.itemCount) {
             return;
         }
 
         var layoutRect = nonScrollingEdges
 
+        // Movement direction. Either TOWARDS_TOP_LEFT or TOWARDS_BOTTOM_RIGHT.
         val direction = mPendingScrollStrategy(mPendingScrollPosition, this, state)
         var index = getInitialIndex(direction)
-        val initialView = if (direction == TOWARDS_TOP_LEFT) getChildAt(0)
-                else getChildAt(childCount - 1)
-        var selectedItem = getItemForView(direction, initialView!!)
+        var selectedItem = getInitialItem(direction)
 
         val initialHiddenSize = selectedItem.hiddenSize
         offsetChildren(initialHiddenSize * -direction)
@@ -222,6 +217,7 @@ class LoopingLayoutManager : LayoutManager {
             val hiddenSize = selectedItem.hiddenSize
             offsetChildren(hiddenSize * -direction)
         }
+        mPendingScrollPosition = RecyclerView.NO_POSITION
         recycleViews(direction, recycler, state)
     }
 
@@ -302,10 +298,7 @@ class LoopingLayoutManager : LayoutManager {
         val absDelta = abs(delta)
         var amountScrolled = 0
         var index = getInitialIndex(direction)
-        val initialView = if (direction == TOWARDS_TOP_LEFT) getChildAt(0)
-                else getChildAt(childCount - 1)
-        // initialView should never be null, so we'll just ask for an exception.
-        var selectedItem = getItemForView(direction, initialView!!)
+        var selectedItem = getInitialItem(direction)
         while (amountScrolled < absDelta) {
             val hiddenSize = selectedItem.hiddenSize
             // Scroll just enough to complete the scroll, or bring the view fully into view.
@@ -377,6 +370,21 @@ class LoopingLayoutManager : LayoutManager {
         } else {
             bottomRightIndex
         }
+    }
+
+    /**
+     * Returns the view (wrapped in a ListItem) closest to where new views will be shown.
+     * For example, if the user is trying to see new views at the top, this will return the
+     * top-most view.
+     * @param direction The direction the list is being scrolled in. Either [.TOWARDS_TOP_LEFT]
+     * or [.TOWARDS_BOTTOM_RIGHT]
+     * @return The view (wrapped in a ListItem) closest to where new views will be shown.
+     */
+    private fun getInitialItem(direction: Int): ListItem {
+        val initialView = if (direction == TOWARDS_TOP_LEFT) getChildAt(0)
+        else getChildAt(childCount - 1)
+        // initialView should never be null, so we'll just ask for an exception.
+        return getItemForView(direction, initialView!!)
     }
 
     /**
@@ -591,9 +599,24 @@ class LoopingLayoutManager : LayoutManager {
      */
     private fun viewIsVisible(view: View): Boolean {
         return if (orientation == HORIZONTAL) {
-            getDecoratedRight(view) >= 0 && getDecoratedLeft(view) <= width
+            getDecoratedRight(view) >= paddingLeft && getDecoratedLeft(view) <= width - paddingRight
         } else {
-            getDecoratedBottom(view) >= 0 && getDecoratedTop(view) <= height
+            getDecoratedBottom(view) >= paddingTop && getDecoratedTop(view) <= height - paddingBottom
+        }
+    }
+
+    /**
+     * Checks if the view is fully within the visible bounds of the recycler (along the layout
+     * axis - fully visible horizontally in horizontal mode, fully visible vertically in vertical
+     * mode).
+     * @param view The view to check the visibility of.
+     * @return True if the view is fully visible along the layout axis, false otherwise.
+     */
+    private fun viewIsFullyVisible(view: View): Boolean {
+        return if (orientation == HORIZONTAL) {
+            getDecoratedLeft(view) >= paddingLeft && getDecoratedRight(view) <= width - paddingRight
+        } else {
+            getDecoratedTop(view) >= paddingTop && getDecoratedBottom(view) <= height - paddingBottom
         }
     }
 
@@ -626,9 +649,13 @@ class LoopingLayoutManager : LayoutManager {
     }
 
     /**
+     * @param adapterIndex The adapter index we want to find views associated with.
      * @return All views associated with the given adapter index.
      */
     private fun findAllViewsWithPosition(adapterIndex: Int): Iterable<View> {
+        // This could be optimized using the state.itemCount to jump over views we know are not
+        // associated with the index. But given the number of views that will be visible at once,
+        // that's an over-optimization at this time.
         val views = mutableListOf<View>()
         for (i in 0 until childCount) {
             val view = getChildAt(i)
@@ -636,9 +663,8 @@ class LoopingLayoutManager : LayoutManager {
                 views += view
             }
         }
-        return views;
+        return views
     }
-
 
     /**
      * Scrolls the layout to make the given position visible. If a view associated with the index
@@ -672,26 +698,20 @@ class LoopingLayoutManager : LayoutManager {
                     state: RecyclerView.State
             ) -> Int
     ) {
-        val views = findAllViewsWithPosition(adapterIndex)
-        for (view in views) {
-            val left = getDecoratedLeft(view)
-            val top = getDecoratedTop(view)
-            val right = getDecoratedRight(view)
-            val bottom = getDecoratedBottom(view)
-
-            val rRight = width - paddingRight
-            val rBottom = height - paddingBottom
-            Log.v(TAG, "$left $top $right $bottom \n $paddingLeft $paddingTop $rRight $rBottom")
-            if (getDecoratedLeft(view) >= paddingLeft &&
-                    getDecoratedTop(view) >= paddingTop &&
-                    getDecoratedRight(view) <= width - paddingRight &&
-                    getDecoratedBottom(view) <= height - paddingBottom) {
-                return;  // At least one view is fully visible.
-            }
-        }
+        if (viewWithIndexIsFullyVisible(adapterIndex)) return
         mPendingScrollPosition = adapterIndex
         mPendingScrollStrategy = strategy
         requestLayout()
+    }
+
+    private fun viewWithIndexIsFullyVisible(adapterIndex: Int): Boolean {
+        val views = findAllViewsWithPosition(adapterIndex)
+        for (view in views) {
+            if (viewIsFullyVisible(view)) {
+                return true
+            }
+        }
+        return false
     }
 
     /**

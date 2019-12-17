@@ -38,7 +38,9 @@ class ScrollToEstimatedShortestTest {
     // Makes the view that fills the screen a little bit wider than the recycler so that
     // the target is totally hidden.
     private val fillerViewExtraPortion = 100
+    // Used to center the filler view so that there is equal extra on either side.
     private val halfFillerViewExtraPortion = fillerViewExtraPortion / 2
+    // A constant size to use for views that are not the filler view, and are not the target view.
     private val otherViewSize = 100
 
 

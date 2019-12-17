@@ -29,8 +29,7 @@ fun addViewsAtAnchorEdge(
         layoutManager: LoopingLayoutManager,
         state: RecyclerView.State
 ): Int {
-    val dir = layoutManager.convertAdapterDirToMovementDir(LoopingLayoutManager.TOWARDS_LOWER_INDICES)
-    return dir
+    return layoutManager.convertAdapterDirToMovementDir(LoopingLayoutManager.TOWARDS_LOWER_INDICES)
 }
 
 /**
