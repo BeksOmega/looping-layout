@@ -29,7 +29,7 @@ import androidx.recyclerview.widget.RecyclerView.LayoutManager
 import androidx.recyclerview.widget.RecyclerView.LayoutParams
 import kotlin.math.abs
 
-class LoopingLayoutManager : LayoutManager {
+class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVectorProvider {
 
     /**
      * When LayoutManager needs to scroll to a position, it sets this variable and requests a
@@ -431,91 +431,6 @@ class LoopingLayoutManager : LayoutManager {
     }
 
     /**
-     * Returns the direction we are moving through the adapter (Either
-     * [.TOWARDS_HIGHER_INDICES] or [.TOWARDS_LOWER_INDICES]) based on the direction
-     * the list is being scrolled in, and the current layout settings.
-     * @param direction The direction the list is being scrolled in. Either [.TOWARDS_TOP_LEFT]
-     * or [.TOWARDS_BOTTOM_RIGHT]
-     * @return the direction we are moving through the adapter. Either
-     * [.TOWARDS_HIGHER_INDICES] or [.TOWARDS_LOWER_INDICES].
-     */
-    private fun getAdapterDirectionFromMovementDirection(direction: Int): Int {
-        val isVertical = orientation == VERTICAL
-        val isHorizontal = !isVertical
-        val isTowardsTopLeft = direction == TOWARDS_TOP_LEFT
-        val isTowardsBottomRight = !isTowardsTopLeft
-        val isRTL = isLayoutRTL
-        val isLTR = !isRTL
-        val isReversed = reverseLayout
-        val isNotReversed = !isReversed
-
-        return when {
-            isVertical && isTowardsTopLeft && isNotReversed -> TOWARDS_LOWER_INDICES
-            isVertical && isTowardsTopLeft && isReversed -> TOWARDS_HIGHER_INDICES
-            isVertical && isTowardsBottomRight && isNotReversed -> TOWARDS_HIGHER_INDICES
-            isVertical && isTowardsBottomRight && isReversed -> TOWARDS_LOWER_INDICES
-            isHorizontal && isTowardsTopLeft && isLTR && isNotReversed -> TOWARDS_LOWER_INDICES
-            isHorizontal && isTowardsTopLeft && isLTR && isReversed -> TOWARDS_HIGHER_INDICES
-            isHorizontal && isTowardsTopLeft && isRTL && isNotReversed -> TOWARDS_HIGHER_INDICES
-            isHorizontal && isTowardsTopLeft && isRTL && isReversed -> TOWARDS_LOWER_INDICES
-            isHorizontal && isTowardsBottomRight && isLTR && isNotReversed -> TOWARDS_HIGHER_INDICES
-            isHorizontal && isTowardsBottomRight && isLTR && isReversed -> TOWARDS_LOWER_INDICES
-            isHorizontal && isTowardsBottomRight && isRTL && isNotReversed -> TOWARDS_LOWER_INDICES
-            isHorizontal && isTowardsBottomRight && isRTL && isReversed -> TOWARDS_HIGHER_INDICES
-            else -> throw IllegalStateException("Invalid movement state.")
-        }
-    }
-
-    /**
-     * Converts an adapter direction ([.TOWARDS_HIGHER_INDICES] or [.TOWARDS_LOWER_INDICES]) to
-     * a movement direction. A movement direction tells us which direction we should traverse
-     * the views in (first -> last or last -> first) so that we are traversing in the given
-     * adapter direction.
-     * @param direction The direction we want to traverse the adapter indices in.
-     * Either [.TOWARDS_HIGHER_INDICES] or [.TOWARDS_LOWER_INDICES].
-     * @return The direction we need to traverse the views in to get to adapter indices in the
-     * given direction.
-     */
-    fun convertAdapterDirToMovementDir(direction: Int): Int {
-        return getMovementDirectionFromAdapterDirection(direction)
-    }
-
-    /**
-     * Returns the direction we need to move the views in to get to adapter indices in the
-     * given direction.
-     * @param direction The direction we want to traverse the adapter indices in.
-     * Either [.TOWARDS_HIGHER_INDICES] or [.TOWARDS_LOWER_INDICES].
-     * @return The direction we need to move the views in to get to adapter indices in the
-     * given direction.
-     */
-    private fun getMovementDirectionFromAdapterDirection(direction: Int): Int {
-        val isVertical = orientation == VERTICAL
-        val isHorizontal = !isVertical
-        val isTowardsHigher = direction == TOWARDS_HIGHER_INDICES
-        val isTowardsLower = !isTowardsHigher
-        val isRTL = isLayoutRTL
-        val isLTR = !isRTL
-        val isReversed = reverseLayout
-        val isNotReversed = !isReversed
-
-        return when {
-            isVertical && isTowardsHigher && isNotReversed -> TOWARDS_BOTTOM_RIGHT
-            isVertical && isTowardsHigher && isReversed -> TOWARDS_TOP_LEFT
-            isVertical && isTowardsLower && isNotReversed -> TOWARDS_TOP_LEFT
-            isVertical && isTowardsLower && isReversed -> TOWARDS_BOTTOM_RIGHT
-            isHorizontal && isTowardsHigher && isLTR && isNotReversed -> TOWARDS_BOTTOM_RIGHT
-            isHorizontal && isTowardsHigher && isLTR && isReversed -> TOWARDS_TOP_LEFT
-            isHorizontal && isTowardsHigher && isRTL && isNotReversed -> TOWARDS_TOP_LEFT
-            isHorizontal && isTowardsHigher && isRTL && isReversed -> TOWARDS_BOTTOM_RIGHT
-            isHorizontal && isTowardsLower && isLTR && isNotReversed -> TOWARDS_TOP_LEFT
-            isHorizontal && isTowardsLower && isLTR && isReversed -> TOWARDS_BOTTOM_RIGHT
-            isHorizontal && isTowardsLower && isRTL && isNotReversed -> TOWARDS_BOTTOM_RIGHT
-            isHorizontal && isTowardsLower && isRTL && isReversed -> TOWARDS_TOP_LEFT
-            else -> throw IllegalStateException("Invalid adapter state.")
-        }
-    }
-
-    /**
      * Returns the view wrapped in the correct ListItem based on the movement direction and
      * configuration of the LayoutManager.
      *
@@ -619,6 +534,93 @@ class LoopingLayoutManager : LayoutManager {
             getDecoratedTop(view) >= paddingTop && getDecoratedBottom(view) <= height - paddingBottom
         }
     }
+
+    /**
+     * Returns the direction we are moving through the adapter (Either
+     * [.TOWARDS_HIGHER_INDICES] or [.TOWARDS_LOWER_INDICES]) based on the direction
+     * the list is being scrolled in, and the current layout settings.
+     * @param direction The direction the list is being scrolled in. Either [.TOWARDS_TOP_LEFT]
+     * or [.TOWARDS_BOTTOM_RIGHT]
+     * @return the direction we are moving through the adapter. Either
+     * [.TOWARDS_HIGHER_INDICES] or [.TOWARDS_LOWER_INDICES].
+     */
+    private fun getAdapterDirectionFromMovementDirection(direction: Int): Int {
+        val isVertical = orientation == VERTICAL
+        val isHorizontal = !isVertical
+        val isTowardsTopLeft = direction == TOWARDS_TOP_LEFT
+        val isTowardsBottomRight = !isTowardsTopLeft
+        val isRTL = isLayoutRTL
+        val isLTR = !isRTL
+        val isReversed = reverseLayout
+        val isNotReversed = !isReversed
+
+        return when {
+            isVertical && isTowardsTopLeft && isNotReversed -> TOWARDS_LOWER_INDICES
+            isVertical && isTowardsTopLeft && isReversed -> TOWARDS_HIGHER_INDICES
+            isVertical && isTowardsBottomRight && isNotReversed -> TOWARDS_HIGHER_INDICES
+            isVertical && isTowardsBottomRight && isReversed -> TOWARDS_LOWER_INDICES
+            isHorizontal && isTowardsTopLeft && isLTR && isNotReversed -> TOWARDS_LOWER_INDICES
+            isHorizontal && isTowardsTopLeft && isLTR && isReversed -> TOWARDS_HIGHER_INDICES
+            isHorizontal && isTowardsTopLeft && isRTL && isNotReversed -> TOWARDS_HIGHER_INDICES
+            isHorizontal && isTowardsTopLeft && isRTL && isReversed -> TOWARDS_LOWER_INDICES
+            isHorizontal && isTowardsBottomRight && isLTR && isNotReversed -> TOWARDS_HIGHER_INDICES
+            isHorizontal && isTowardsBottomRight && isLTR && isReversed -> TOWARDS_LOWER_INDICES
+            isHorizontal && isTowardsBottomRight && isRTL && isNotReversed -> TOWARDS_LOWER_INDICES
+            isHorizontal && isTowardsBottomRight && isRTL && isReversed -> TOWARDS_HIGHER_INDICES
+            else -> throw IllegalStateException("Invalid movement state.")
+        }
+    }
+
+    /**
+     * Converts an adapter direction ([.TOWARDS_HIGHER_INDICES] or [.TOWARDS_LOWER_INDICES]) to
+     * a movement direction. A movement direction tells us which direction we should traverse
+     * the views in (first -> last or last -> first) so that we are traversing in the given
+     * adapter direction.
+     * @param direction The direction we want to traverse the adapter indices in.
+     * Either [.TOWARDS_HIGHER_INDICES] or [.TOWARDS_LOWER_INDICES].
+     * @return The direction we need to traverse the views in to get to adapter indices in the
+     * given direction.
+     */
+    fun convertAdapterDirToMovementDir(direction: Int): Int {
+        return getMovementDirectionFromAdapterDirection(direction)
+    }
+
+    /**
+     * Returns the direction we need to move the views in to get to adapter indices in the
+     * given direction.
+     * @param direction The direction we want to traverse the adapter indices in.
+     * Either [.TOWARDS_HIGHER_INDICES] or [.TOWARDS_LOWER_INDICES].
+     * @return The direction we need to move the views in to get to adapter indices in the
+     * given direction.
+     */
+    private fun getMovementDirectionFromAdapterDirection(direction: Int): Int {
+        val isVertical = orientation == VERTICAL
+        val isHorizontal = !isVertical
+        val isTowardsHigher = direction == TOWARDS_HIGHER_INDICES
+        val isTowardsLower = !isTowardsHigher
+        val isRTL = isLayoutRTL
+        val isLTR = !isRTL
+        val isReversed = reverseLayout
+        val isNotReversed = !isReversed
+
+        return when {
+            isVertical && isTowardsHigher && isNotReversed -> TOWARDS_BOTTOM_RIGHT
+            isVertical && isTowardsHigher && isReversed -> TOWARDS_TOP_LEFT
+            isVertical && isTowardsLower && isNotReversed -> TOWARDS_TOP_LEFT
+            isVertical && isTowardsLower && isReversed -> TOWARDS_BOTTOM_RIGHT
+            isHorizontal && isTowardsHigher && isLTR && isNotReversed -> TOWARDS_BOTTOM_RIGHT
+            isHorizontal && isTowardsHigher && isLTR && isReversed -> TOWARDS_TOP_LEFT
+            isHorizontal && isTowardsHigher && isRTL && isNotReversed -> TOWARDS_TOP_LEFT
+            isHorizontal && isTowardsHigher && isRTL && isReversed -> TOWARDS_BOTTOM_RIGHT
+            isHorizontal && isTowardsLower && isLTR && isNotReversed -> TOWARDS_TOP_LEFT
+            isHorizontal && isTowardsLower && isLTR && isReversed -> TOWARDS_BOTTOM_RIGHT
+            isHorizontal && isTowardsLower && isRTL && isNotReversed -> TOWARDS_BOTTOM_RIGHT
+            isHorizontal && isTowardsLower && isRTL && isReversed -> TOWARDS_TOP_LEFT
+            else -> throw IllegalStateException("Invalid adapter state.")
+        }
+    }
+
+
 
     /**
      * Finds the view with the given adapter position.
