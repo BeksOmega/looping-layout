@@ -630,7 +630,7 @@ class LoopingLayoutManager : LayoutManager {
      * @return A view with the given adapter position.
      */
     override fun findViewByPosition(adapterIndex: Int): View? {
-        return findViewByPosition(adapterIndex, ::childClosestToMiddle);
+        return findViewByPosition(adapterIndex, ::defaultPicker);
     }
 
     /**

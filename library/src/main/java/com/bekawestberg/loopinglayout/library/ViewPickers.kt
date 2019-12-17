@@ -21,6 +21,18 @@ import android.view.View
 import kotlin.math.abs
 
 /**
+ * The default view picker used when one is not provided.
+ *
+ * @return A view with the given adapter index.
+ */
+fun defaultPicker(
+        targetAdapterIndex: Int,
+        layoutManager: LoopingLayoutManager
+): View? {
+    return childClosestToMiddle(targetAdapterIndex, layoutManager)
+}
+
+/**
  * @return A view with the given adapter index. If there are multiple views associated with the
  * given index, this returns the view closest to the anchor edge.
  *
