@@ -121,14 +121,14 @@ object RecyclerViewActions {
 
     fun scrollToPositionViaManager(
             position: Int,
-            strategy: (Int, LoopingLayoutManager, RecyclerView.State) -> Int = ::defaultDecider
+            strategy: (Int, LoopingLayoutManager, Int) -> Int = ::defaultDecider
     ): ViewAction {
         return ScrollToPositionViaManagerAction(position, strategy)
     }
 
     class ScrollToPositionViaManagerAction(
             val position: Int,
-            val strategy: (Int, LoopingLayoutManager, RecyclerView.State) -> Int
+            val strategy: (Int, LoopingLayoutManager, Int) -> Int
     ) : ViewAction {
 
         override fun getConstraints(): Matcher<View> {
