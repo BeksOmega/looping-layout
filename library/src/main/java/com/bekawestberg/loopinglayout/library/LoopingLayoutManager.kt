@@ -18,24 +18,18 @@
 package com.bekawestberg.loopinglayout.library
 
 import android.content.Context
-import android.graphics.Point
 import android.graphics.PointF
 import android.graphics.Rect
 import android.util.AttributeSet
-import android.util.DisplayMetrics
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.DecelerateInterpolator
-import android.view.animation.LinearInterpolator
-import android.widget.TextView
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.OrientationHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.LayoutManager
 import androidx.recyclerview.widget.RecyclerView.LayoutParams
-import org.w3c.dom.Text
 import kotlin.math.abs
 
 class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVectorProvider {
@@ -46,11 +40,16 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
      */
     private var mPendingScrollPosition = RecyclerView.NO_POSITION
     /**
-     * When the layout manager needs to scroll to a position, it needs some method to decide which
-     * direction to scroll in. This variable stores that method.
+     * When the layout manager needs to scroll to a position (via scroll to position), it needs
+     * some method to decide which direction to scroll in. This variable stores that method.
      */
     private var mPendingScrollStrategy: (Int, LoopingLayoutManager, Int) -> Int = ::defaultDecider
 
+    /**
+     * The amount of extra (i.e. not visible) space to fill up with views after we have filled up
+     * the visible space. This is used during smooth scrolling, so that the target view can be found
+     * before it becomes visible (helps with smooth deceleration).
+     */
     private var extraLayoutSpace = 0
 
     /**
@@ -80,7 +79,10 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
      */
     var bottomRightIndex = 0
             private set
-
+    /**
+     * When the layout manager needs to scroll to a position (via smooth scrolling) it needs some
+     * method to decide which direction to scroll in. This variable stores that method.
+     */
     var smoothScrollDirectionDecider: (Int, LoopingLayoutManager, Int) -> Int = ::defaultDecider
     
     /**
@@ -329,9 +331,10 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             }
         }
 
-        // The amount of extra space covered by views.
+        // The amount of extra (i.e not visible) space currently covered by views.
         var viewSpace = selectedItem.hiddenSize
         while(viewSpace < extraLayoutSpace) {
+            // We don't want the topLeftIndex or bottomRightIndex to reflect non-visible views.
             index = stepIndex(index, direction, state, updateIndex = false)
             val newView = createViewForIndex(index, direction, recycler)
             val newItem = getItemForView(direction, newView)
@@ -427,7 +430,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
      * or [.TOWARDS_BOTTOM_RIGHT]
      * @param state The current state of the RecyclerView this LayoutManager is attached to.
      * @param updateIndex If true, the [.topLeftIndex] or [.bottomRightIndex] will be updated to
-     * reflect the new index. If false, they will not be updated.
+     * reflect the new index. If false, they will not be updated. True by default.
      * @return The stepped index.
      */
     private fun stepIndex(
@@ -492,9 +495,14 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         }
     }
 
+    /**
+     * Sends any currently non-visible (i.e. not within the visible bounds of the recycler) views
+     * to the scrap heap. Used by scrollBy to make sure we're only dealing with visible views before
+     * adding new ones.
+     */
     private fun scrapNonVisibleViews(recycler: RecyclerView.Recycler) {
         for (i in (childCount - 1) downTo 0) {
-            val view = getChildAt(i) ?: return
+            val view = getChildAt(i) ?: continue
             if (!viewIsVisible(view)) {
                 detachAndScrapView(view, recycler)
             }
@@ -675,10 +683,39 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         }
     }
 
+    /**
+     * Calculates the vector that points to where the target position can be found.
+     *
+     * By default it tries to return the direction that will require the least amount of scrolling
+     * to get to, but if some views are larger or smaller than other views this may be incorrect.
+     *
+     * A different function may be provided by assigning it to the smoothScrollDirectionDecider
+     * property of the LoopingLayoutManager.
+     *
+     * This method is used by the LayoutManager's SmoothScroller to initiate a scroll towards the
+     * target position.
+     * @param targetPosition The target position to which the returned vector should point
+     * @return The vector which points towards the given target position.
+     */
     override fun computeScrollVectorForPosition(targetPosition: Int): PointF {
         return computeScrollVectorForPosition(targetPosition, itemCount)
     }
 
+    /**
+     * Calculates the vector that points to where the target position can be found.
+     *
+     * By default it tries to return the direction that will require the least amount of scrolling
+     * to get to, but if some views are larger or smaller than other views this may be incorrect.
+     *
+     * A different function may be provided by assigning it to the smoothScrollDirectionDecider
+     * property of the LoopingLayoutManager.
+     *
+     * This method is used by the LayoutManager's SmoothScroller to initiate a scroll towards the
+     * target position.
+     * @param targetPosition The target position to which the returned vector should point
+     * @param count The current state.itemCount.
+     * @return The vector which points towards the given target position.
+     */
     fun computeScrollVectorForPosition(targetPosition: Int, count: Int): PointF {
         val direction = smoothScrollDirectionDecider(targetPosition, this, count)
         return if (orientation == HORIZONTAL) {
@@ -772,6 +809,10 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         requestLayout()
     }
 
+    /**
+     * @return True if there is at least one view associated with the given index that is fully
+     * visible. False otherwise.
+     */
     private fun viewWithIndexIsFullyVisible(adapterIndex: Int): Boolean {
         val views = findAllViewsWithPosition(adapterIndex)
         for (view in views) {
@@ -969,6 +1010,12 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         }
     }
 
+    /**
+     * A smooth scroller that supports the looping layout managers two (at the time of writing) quirks:
+     *    1) By default the layout manager only lays out visible views.
+     *    2) The layout manager must be given the state.itemCount to properly calculate
+     *       a scroll vector.
+     */
     private inner class LoopingSmoothScroller(
             val context: Context,
             val state: RecyclerView.State
