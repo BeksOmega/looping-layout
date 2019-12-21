@@ -496,9 +496,9 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
     }
 
     /**
-     * Sends any currently non-visible (i.e. not within the visible bounds of the recycler) views
-     * to the scrap heap. Used by scrollBy to make sure we're only dealing with visible views before
-     * adding new ones.
+     * Sends any currently non-visible (i.e. views completely outside the visible bounds of the
+     * recycler) views to the scrap heap. Used by scrollBy to make sure we're only dealing with
+     * visible views before adding new ones.
      */
     private fun scrapNonVisibleViews(recycler: RecyclerView.Recycler) {
         for (i in (childCount - 1) downTo 0) {
@@ -528,14 +528,16 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         var foundVisibleView = false
         var foundHiddenView = false
 
-        // We want to loop through the views in the order opposite the direction of movement.
+        // We want to loop through the views in the order opposite the direction of movement so that
+        // we remove views that have become hidden because of scrolling.
         val range = if (direction == TOWARDS_TOP_LEFT) {
             0 until childCount
         } else {
             childCount-1 downTo 0
         }
 
-        // Ignore hidden views at the start. Only recycle hidden views at the end.
+        // Ignore hidden views at the start of the range.
+        // Only recycle hidden views at the end of the range.
         for (i in range) {
             val view = getChildAt(i) ?: break
             if (viewIsVisible(view)) {
@@ -584,9 +586,9 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
     }
 
     /**
-     * Checks if the view is fully within the visible bounds of the recycler (along the layout
-     * axis - fully visible horizontally in horizontal mode, fully visible vertically in vertical
-     * mode).
+     * Checks if the view is fully within the visible bounds of the recycler along the layout axis.
+     * This means fully visible horizontally in horizontal mode, and fully visible vertically in
+     * vertical mode.
      * @param view The view to check the visibility of.
      * @return True if the view is fully visible along the layout axis, false otherwise.
      */
@@ -694,7 +696,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
      *
      * This method is used by the LayoutManager's SmoothScroller to initiate a scroll towards the
      * target position.
-     * @param targetPosition The target position to which the returned vector should point
+     * @param targetPosition The target position to which the returned vector should point.
      * @return The vector which points towards the given target position.
      */
     override fun computeScrollVectorForPosition(targetPosition: Int): PointF {
@@ -712,7 +714,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
      *
      * This method is used by the LayoutManager's SmoothScroller to initiate a scroll towards the
      * target position.
-     * @param targetPosition The target position to which the returned vector should point
+     * @param targetPosition The target position to which the returned vector should point.
      * @param count The current state.itemCount.
      * @return The vector which points towards the given target position.
      */
@@ -1011,7 +1013,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
     }
 
     /**
-     * A smooth scroller that supports the looping layout managers two (at the time of writing) quirks:
+     * A smooth scroller that supports the LoopingLayoutManager's two (at the time of writing) quirks:
      *    1) By default the layout manager only lays out visible views.
      *    2) The layout manager must be given the state.itemCount to properly calculate
      *       a scroll vector.
@@ -1021,6 +1023,11 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             val state: RecyclerView.State
     ) : LinearSmoothScroller(context) {
 
+        /**
+         * Tells the LoopingLayoutManager to start laying out extra (i.e. not visible) views. This
+         * allows the target view to be found before it becomes visible, which helps with smooth
+         * deceleration.
+         */
         override fun onStart() {
             // Based on the Material Design Guidelines, 500 ms should be plenty of time to decelerate.
             val rate = calculateSpeedPerPixel(context.resources.displayMetrics)  // MS/Pixel
@@ -1028,6 +1035,10 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             (layoutManager as LoopingLayoutManager).extraLayoutSpace = (rate * time).toInt()
         }
 
+        /**
+         * Tells the LoopingLayoutManager to stop laying out extra views, b/c there's no need
+         * to lay out views the user can't see.
+         */
         override fun onStop() {
             (layoutManager as LoopingLayoutManager).extraLayoutSpace = 0
         }
