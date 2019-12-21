@@ -13,9 +13,9 @@ import kotlin.math.min
 fun defaultDecider(
         adapterIndex: Int,
         layoutManager: LoopingLayoutManager,
-        state: RecyclerView.State
+        itemCount: Int
 ): Int {
-    return estimateShortestRoute(adapterIndex, layoutManager, state)
+    return estimateShortestRoute(adapterIndex, layoutManager, itemCount)
 }
 
 /**
@@ -27,7 +27,7 @@ fun defaultDecider(
 fun addViewsAtAnchorEdge(
         adapterIndex: Int,
         layoutManager: LoopingLayoutManager,
-        state: RecyclerView.State
+        itemCount: Int
 ): Int {
     return layoutManager.convertAdapterDirToMovementDir(LoopingLayoutManager.TOWARDS_LOWER_INDICES)
 }
@@ -41,7 +41,7 @@ fun addViewsAtAnchorEdge(
 fun addViewsAtOptAnchorEdge(
         adapterIndex: Int,
         layoutManager: LoopingLayoutManager,
-        state: RecyclerView.State
+        itemCount: Int
 ): Int {
     return layoutManager.convertAdapterDirToMovementDir(LoopingLayoutManager.TOWARDS_HIGHER_INDICES)
 }
@@ -56,7 +56,7 @@ fun addViewsAtOptAnchorEdge(
 fun estimateShortestRoute(
         adapterIndex: Int,
         layoutManager: LoopingLayoutManager,
-        state: RecyclerView.State
+        itemCount: Int
 ): Int {
     // Special case the view being partially visible.
     if (layoutManager.topLeftIndex == adapterIndex) {
@@ -66,11 +66,11 @@ fun estimateShortestRoute(
     }
 
     val (topLeftInLoopDist, topLeftOverSeamDist) = calculateDistances(
-            adapterIndex, layoutManager.topLeftIndex, state.itemCount)
+            adapterIndex, layoutManager.topLeftIndex, itemCount)
     val topLeftTargetSmaller = adapterIndex < layoutManager.topLeftIndex
 
     val (bottomRightInLoopDist, bottomRightOverSeamDist) = calculateDistances(
-            adapterIndex, layoutManager.bottomRightIndex, state.itemCount)
+            adapterIndex, layoutManager.bottomRightIndex, itemCount)
     val bottomRightTargetSmaller = adapterIndex < layoutManager.bottomRightIndex
 
     val minDist = arrayOf(topLeftInLoopDist, topLeftOverSeamDist,
