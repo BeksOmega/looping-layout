@@ -43,9 +43,9 @@ fun childClosestToAnchorEdge(
         targetAdapterIndex: Int,
         layoutManager: LoopingLayoutManager
 ): View? {
-    val direction = layoutManager.convertAdapterDirToMovementDir(
+    val movementDir = layoutManager.convertAdapterDirToMovementDir(
             LoopingLayoutManager.TOWARDS_HIGHER_INDICES)
-    val range = if (direction == LoopingLayoutManager.TOWARDS_BOTTOM_RIGHT) {
+    val range = if (movementDir == LoopingLayoutManager.TOWARDS_HIGHER_INDICES) {
         0 until layoutManager.childCount
     } else {
         layoutManager.childCount-1 downTo 0
