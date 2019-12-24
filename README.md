@@ -16,7 +16,7 @@ It lives at [https://github.com/BeksOmega/looping-layout].
 Add the dependency to your build.gradle file.
 ```groovy
 dependencies {
-    implementation 'com.github.beksomega:loopinglayout:0.1.0'
+    implementation 'com.github.beksomega:loopinglayout:0.2.0'
 }
 ```
 
@@ -90,12 +90,12 @@ Current:
  * Vertical and Horizontal Orientations.
  * LTR and RTL support.
  * ReverseLayout support for both orientations, as well as LTR, and RTL.
+ * Public functions for finding items and positions.
+ * Public functions for scrolling programmatically.
     
 Future:
  * `notifyDataSetChanged` support.
  * Snap Helper support.
- * Public functions for finding items and positions.
- * Public functions for scrolling.
  * Drag and Drop support?
 
 ## :page_with_curl: License 
