@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Looping Layout
+ * Copyright 2019 Looping Layout
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ package com.bekawestberg.loopinglayout.test.androidTest.utils
 import android.view.View
 
 import androidx.recyclerview.widget.RecyclerView
+import com.bekawestberg.loopinglayout.library.LoopingLayoutManager
 
 import org.hamcrest.Description
 import org.hamcrest.Matcher
@@ -57,11 +58,39 @@ class RecyclerViewMatcher(private val recyclerViewId: Int) {
 
             public override fun matchesSafely(view: View): Boolean {
                 if (correctView == null) {
-                    val recyclerView = view.rootView.findViewById<View>(recyclerViewId) as RecyclerView
+                    val recyclerView = view.rootView.findViewById<RecyclerView>(recyclerViewId)
                     val vh = recyclerView.findViewHolderForAdapterPosition(position)
                     if (vh != null) correctView = vh.itemView else return false
                 }
                 return view === correctView;
+            }
+        }
+    }
+
+    fun atAdapterPosViaManager(
+            position: Int,
+            strategy: ((pos: Int, layoutManager: LoopingLayoutManager) -> View?)? = null
+    ): Matcher<View> {
+        return object : TypeSafeMatcher<View>() {
+            var correctView: View? = null
+
+            override fun describeTo(description: Description) {
+                description.appendText("Trying to find child at position $position in adapter via" +
+                        "the layout manager.")
+            }
+
+            public override fun matchesSafely(view: View): Boolean {
+                if (correctView == null) {
+                    val recyclerView = view.rootView.findViewById<RecyclerView>(recyclerViewId)
+                    val v = if (strategy != null && recyclerView.layoutManager is LoopingLayoutManager) {
+                        (recyclerView.layoutManager as LoopingLayoutManager)
+                                .findViewByPosition(position, strategy)
+                    } else {
+                        recyclerView.layoutManager?.findViewByPosition(position)
+                    }
+                    if (v != null) correctView = v else return false
+                }
+                return view === correctView
             }
         }
     }

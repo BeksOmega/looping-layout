@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Looping Layout
+ * Copyright 2019 Looping Layout
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,12 @@
 package com.bekawestberg.loopinglayout.test.androidTest.utils
 
 import androidx.core.view.ViewCompat
+import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso
 import androidx.test.espresso.matcher.ViewMatchers
 import androidx.test.platform.app.InstrumentationRegistry
 import com.bekawestberg.loopinglayout.library.LoopingLayoutManager
+import com.bekawestberg.loopinglayout.test.AdapterGeneric
 import com.bekawestberg.loopinglayout.test.R
 
 internal fun setLayoutManager(direction: Int, reverseLayout: Boolean) {
@@ -29,6 +31,12 @@ internal fun setLayoutManager(direction: Int, reverseLayout: Boolean) {
     Espresso.onView(ViewMatchers.withId(R.id.recycler))
             .perform(RecyclerViewActions.setLayoutManager(
                     LoopingLayoutManager(context, direction, reverseLayout)))
+}
+
+internal fun setAdapter(data: Array<String>, sizes: Array<Int>? = null) {
+    Espresso.onView(ViewMatchers.withId(R.id.recycler))
+            .perform(RecyclerViewActions.setAdapter(
+                    AdapterGeneric(data, sizes) as RecyclerView.Adapter<RecyclerView.ViewHolder>))
 }
 
 internal fun setRtl() {

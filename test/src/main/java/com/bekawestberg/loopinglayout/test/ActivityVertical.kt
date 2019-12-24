@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Looping Layout
+ * Copyright 2019 Looping Layout
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,13 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import com.bekawestberg.loopinglayout.library.LoopingLayoutManager
+import com.bekawestberg.loopinglayout.library.addViewsAtOptAnchorEdge
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class ActivityVertical : AppCompatActivity() {
     private lateinit var mRecyclerView: RecyclerView
     private var mAdapter: AdapterGeneric = AdapterGeneric(
-            arrayOf("0", "1", "2", "3", "4", "5", "6"/**/))
+            arrayOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"))
     private var mLayoutManager: LoopingLayoutManager =
             LoopingLayoutManager(this, LoopingLayoutManager.VERTICAL, false)
 
@@ -40,5 +42,9 @@ class ActivityVertical : AppCompatActivity() {
         mRecyclerView.setHasFixedSize(true)
         mRecyclerView.layoutManager = mLayoutManager
         mRecyclerView.adapter = mAdapter
+        mLayoutManager.smoothScrollDirectionDecider = ::addViewsAtOptAnchorEdge
+
+        val button = findViewById<FloatingActionButton>(R.id.fab)
+        button.setOnClickListener { mRecyclerView.smoothScrollToPosition(7) }
     }
 }

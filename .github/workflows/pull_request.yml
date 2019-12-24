@@ -1,0 +1,20 @@
+name: Pull Request CI
+
+on:
+  pull_request:
+    branches:
+      - 'develop'
+      - 'master'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Build with Gradle
+        uses: vgaidarji/android-github-actions-build@v1.0.1
+        with:
+          args: "sdkmanager 'platforms;android-29' 'build-tools;29.0.2' && ./gradlew assembleDebug"
+
