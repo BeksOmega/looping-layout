@@ -30,7 +30,7 @@ class ActivityVertical : AppCompatActivity() {
     private var mAdapter: AdapterGeneric = AdapterGeneric(
             arrayOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"))
     private var mLayoutManager: LoopingLayoutManager =
-            LoopingLayoutManager(this, LoopingLayoutManager.VERTICAL, false)
+            LoopingLayoutManager(this, LoopingLayoutManager.VERTICAL, true)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +45,6 @@ class ActivityVertical : AppCompatActivity() {
         mLayoutManager.smoothScrollDirectionDecider = ::addViewsAtOptAnchorEdge
 
         val button = findViewById<FloatingActionButton>(R.id.fab)
-        button.setOnClickListener { mRecyclerView.smoothScrollToPosition(7) }
+        button.setOnClickListener { mAdapter.notifyDataSetChanged() }
     }
 }
