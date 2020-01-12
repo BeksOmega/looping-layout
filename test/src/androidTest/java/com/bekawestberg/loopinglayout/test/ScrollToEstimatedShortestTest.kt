@@ -1,17 +1,14 @@
 package com.bekawestberg.loopinglayout.test
 
 import androidx.recyclerview.widget.RecyclerView
-import androidx.test.espresso.Espresso
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.assertion.PositionAssertions.*
-import androidx.test.espresso.matcher.ViewMatchers
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.rule.ActivityTestRule
 import com.bekawestberg.loopinglayout.library.LoopingLayoutManager
-import com.bekawestberg.loopinglayout.library.addViewsAtAnchorEdge
 import com.bekawestberg.loopinglayout.test.androidTest.utils.RecyclerViewActions
 import com.bekawestberg.loopinglayout.test.androidTest.utils.setAdapter
 import com.bekawestberg.loopinglayout.test.androidTest.utils.setLayoutManager
@@ -19,7 +16,6 @@ import com.bekawestberg.loopinglayout.test.androidTest.utils.setRtl
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.lang.Thread.sleep
 
 /**
  * Instrumented test, which will execute on an Android device.
