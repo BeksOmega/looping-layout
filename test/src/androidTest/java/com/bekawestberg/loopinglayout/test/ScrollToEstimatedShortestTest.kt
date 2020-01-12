@@ -51,72 +51,77 @@ class ScrollToEstimatedShortestTest {
     fun defaultHorizontalPartiallyVisibleAtAnchor() {
         val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = targetVisiblePortion))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
         onView(withText("0"))
                 .check(isLeftAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
     fun defaultHorizontalPartiallyVisibleAtOptAnchor() {
         val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = (targetSize + targetVisiblePortion)))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
         onView(withText("0"))
                 .check(isRightAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
     fun defaultHorizontalNotVisibleAnchorWithin() {
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, fillerSize, otherViewSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = (targetSize + halfFillerViewExtraPortion)))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
         onView(withText("0"))
                 .check(isLeftAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
     }
 
     @Test
     fun defaultHorizontalNotVisibleAnchorSeam() {
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(fillerSize, otherViewSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = halfFillerViewExtraPortion))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(2))
 
         onView(withText("2"))
                 .check(isLeftAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
     fun defaultHorizontalNotVisibleOptAnchorWithin() {
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(otherViewSize, fillerSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = (otherViewSize + halfFillerViewExtraPortion)))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(2))
 
         onView(withText("2"))
                 .check(isRightAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
     }
 
     @Test
     fun defaultHorizontalNotVisibleOptAnchorSeam() {
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, otherViewSize, fillerSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(
                         x = (targetSize + otherViewSize + halfFillerViewExtraPortion)))
@@ -124,78 +129,84 @@ class ScrollToEstimatedShortestTest {
 
         onView(withText("0"))
                 .check(isRightAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
     fun reverseHorizontalPartiallyVisibleAtAnchor() {
         val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = -targetVisiblePortion))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
         onView(withText("0"))
                 .check(isRightAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
     fun reverseHorizontalPartiallyVisibleAtOptAnchor() {
         val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = -(targetSize + targetVisiblePortion)))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
         onView(withText("0"))
                 .check(isLeftAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
     fun reverseHorizontalNotVisibleAnchorWithin() {
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, fillerSize, otherViewSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = -(targetSize + halfFillerViewExtraPortion)))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
         onView(withText("0"))
                 .check(isRightAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
     fun reverseHorizontalNotVisibleAnchorSeam() {
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(fillerSize, otherViewSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = -halfFillerViewExtraPortion))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(2))
 
         onView(withText("2"))
                 .check(isRightAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
     }
 
     @Test
     fun reverseHorizontalNotVisibleOptAnchorWithin() {
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(otherViewSize, fillerSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = -(otherViewSize + halfFillerViewExtraPortion)))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(2))
 
         onView(withText("2"))
                 .check(isLeftAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
     fun reverseHorizontalNotVisibleOptAnchorSeam() {
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, otherViewSize, fillerSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(
                         x = -(targetSize + otherViewSize + halfFillerViewExtraPortion)))
@@ -203,6 +214,7 @@ class ScrollToEstimatedShortestTest {
 
         onView(withText("0"))
                 .check(isLeftAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
     }
 
     @Test
@@ -210,13 +222,14 @@ class ScrollToEstimatedShortestTest {
         setRtl()
         val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = -targetVisiblePortion))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
         onView(withText("0"))
                 .check(isRightAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
@@ -224,13 +237,14 @@ class ScrollToEstimatedShortestTest {
         setRtl()
         val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = -(targetSize + targetVisiblePortion)))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
         onView(withText("0"))
                 .check(isLeftAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
@@ -238,13 +252,14 @@ class ScrollToEstimatedShortestTest {
         setRtl()
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, fillerSize, otherViewSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = -(targetSize + halfFillerViewExtraPortion)))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
         onView(withText("0"))
                 .check(isRightAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
@@ -252,13 +267,14 @@ class ScrollToEstimatedShortestTest {
         setRtl()
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(fillerSize, otherViewSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = -halfFillerViewExtraPortion))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(2))
 
         onView(withText("2"))
                 .check(isRightAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
     }
 
     @Test
@@ -266,13 +282,14 @@ class ScrollToEstimatedShortestTest {
         setRtl()
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(otherViewSize, fillerSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = -(otherViewSize + halfFillerViewExtraPortion)))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(2))
 
         onView(withText("2"))
                 .check(isLeftAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
@@ -280,7 +297,7 @@ class ScrollToEstimatedShortestTest {
         setRtl()
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, otherViewSize, fillerSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(
                         x = -(targetSize + otherViewSize + halfFillerViewExtraPortion)))
@@ -288,6 +305,7 @@ class ScrollToEstimatedShortestTest {
 
         onView(withText("0"))
                 .check(isLeftAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
     }
 
     @Test
@@ -295,13 +313,14 @@ class ScrollToEstimatedShortestTest {
         setRtl()
         val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = targetVisiblePortion))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
         onView(withText("0"))
                 .check(isLeftAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
@@ -309,13 +328,14 @@ class ScrollToEstimatedShortestTest {
         setRtl()
         val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = (targetSize + targetVisiblePortion)))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
         onView(withText("0"))
                 .check(isRightAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
@@ -323,13 +343,14 @@ class ScrollToEstimatedShortestTest {
         setRtl()
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, fillerSize, otherViewSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = (targetSize + halfFillerViewExtraPortion)))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
         onView(withText("0"))
                 .check(isLeftAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
     }
 
     @Test
@@ -337,13 +358,14 @@ class ScrollToEstimatedShortestTest {
         setRtl()
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(fillerSize, otherViewSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = halfFillerViewExtraPortion))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(2))
 
         onView(withText("2"))
                 .check(isLeftAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
@@ -351,13 +373,14 @@ class ScrollToEstimatedShortestTest {
         setRtl()
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(otherViewSize, fillerSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = (otherViewSize + halfFillerViewExtraPortion)))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(2))
 
         onView(withText("2"))
                 .check(isRightAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
     }
 
     @Test
@@ -365,7 +388,7 @@ class ScrollToEstimatedShortestTest {
         setRtl()
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, otherViewSize, fillerSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(
                         x = (targetSize + otherViewSize + halfFillerViewExtraPortion)))
@@ -373,78 +396,84 @@ class ScrollToEstimatedShortestTest {
 
         onView(withText("0"))
                 .check(isRightAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
     fun defaultVerticalPartiallyVisibleAtAnchor() {
         val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.VERTICAL)
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        setLayoutManager(LoopingLayoutManager.VERTICAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(y = targetVisiblePortion))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
         onView(withText("0"))
                 .check(isTopAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
     fun defaultVerticalPartiallyVisibleAtOptAnchor() {
         val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.VERTICAL)
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        setLayoutManager(LoopingLayoutManager.VERTICAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(y = (targetSize + targetVisiblePortion)))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
         onView(withText("0"))
                 .check(isBottomAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
     fun defaultVerticalNotVisibleAnchorWithin() {
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.VERTICAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, fillerSize, otherViewSize))
-        setLayoutManager(LoopingLayoutManager.VERTICAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(y = (targetSize + halfFillerViewExtraPortion)))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
         onView(withText("0"))
                 .check(isTopAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
     }
 
     @Test
     fun defaultVerticalNotVisibleAnchorSeam() {
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.VERTICAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(fillerSize, otherViewSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.VERTICAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(y = halfFillerViewExtraPortion))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(2))
 
         onView(withText("2"))
                 .check(isTopAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
     fun defaultVerticalNotVisibleOptAnchorWithin() {
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.VERTICAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(otherViewSize, fillerSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.VERTICAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(y = (otherViewSize + halfFillerViewExtraPortion)))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(2))
 
         onView(withText("2"))
                 .check(isBottomAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
     }
 
     @Test
     fun defaultVerticalNotVisibleOptAnchorSeam() {
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.VERTICAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, otherViewSize, fillerSize))
-        setLayoutManager(LoopingLayoutManager.VERTICAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(
                         y = (targetSize + otherViewSize + halfFillerViewExtraPortion)))
@@ -452,78 +481,84 @@ class ScrollToEstimatedShortestTest {
 
         onView(withText("0"))
                 .check(isBottomAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
     fun reverseVerticalPartiallyVisibleAtAnchor() {
         val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.VERTICAL)
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        setLayoutManager(LoopingLayoutManager.VERTICAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(y = -targetVisiblePortion))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
         onView(withText("0"))
                 .check(isBottomAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
     fun reverseVerticalPartiallyVisibleAtOptAnchor() {
         val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.VERTICAL)
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        setLayoutManager(LoopingLayoutManager.VERTICAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(y = -(targetSize + targetVisiblePortion)))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
         onView(withText("0"))
                 .check(isTopAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
     fun reverseVerticalNotVisibleAnchorWithin() {
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.VERTICAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, fillerSize, otherViewSize))
-        setLayoutManager(LoopingLayoutManager.VERTICAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(y = -(targetSize + halfFillerViewExtraPortion)))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
         onView(withText("0"))
                 .check(isBottomAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
     fun reverseVerticalNotVisibleAnchorSeam() {
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.VERTICAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(fillerSize, otherViewSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.VERTICAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(y = -halfFillerViewExtraPortion))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(2))
 
         onView(withText("2"))
                 .check(isBottomAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
     }
 
     @Test
     fun reverseVerticalNotVisibleOptAnchorWithin() {
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.VERTICAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(otherViewSize, fillerSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.VERTICAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(y = -(otherViewSize + halfFillerViewExtraPortion)))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(2))
 
         onView(withText("2"))
                 .check(isTopAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
     fun reverseVerticalNotVisibleOptAnchorSeam() {
         val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.VERTICAL)
         setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, otherViewSize, fillerSize))
-        setLayoutManager(LoopingLayoutManager.VERTICAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(
                         y = -(targetSize + otherViewSize + halfFillerViewExtraPortion)))
@@ -531,6 +566,7 @@ class ScrollToEstimatedShortestTest {
 
         onView(withText("0"))
                 .check(isTopAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
     }
 
     fun calculateFillerSizeWhenPartiallyVisible(orientation: Int): Int {

@@ -1,10 +1,8 @@
 package com.bekawestberg.loopinglayout.test
 
 import androidx.recyclerview.widget.RecyclerView
-import androidx.test.espresso.Espresso
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.assertion.PositionAssertions.*
-import androidx.test.espresso.matcher.ViewMatchers
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -19,7 +17,6 @@ import com.bekawestberg.loopinglayout.test.androidTest.utils.setRtl
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.lang.Thread.sleep
 
 /**
  * Instrumented test, which will execute on an Android device.
@@ -47,100 +44,108 @@ class ScrollToAtOptAnchorTest {
     fun defaultHorizontalPartiallyVisibleAtAnchor() {
         val nonTargetSize = calculateNonTargetSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL);
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, nonTargetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = targetVisiblePortion))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtOptAnchorEdge))
 
         onView(withText("0"))
                 .check(isRightAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
     fun defaultHorizontalPartiallyVisibleAtOptAnchor() {
         val nonTargetSize = calculateNonTargetSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL);
         setAdapter(arrayOf("0", "1"), arrayOf(nonTargetSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtOptAnchorEdge))
 
         onView(withText("1"))
                 .check(isRightAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
     fun defaultHorizontalNotVisibleAtAnchor() {
         val nonTargetSize = calculateNonTargetSizeWhenNotVisible(RecyclerView.HORIZONTAL);
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, nonTargetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = nonTargetExtraPortion))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtOptAnchorEdge))
 
         onView(withText("0"))
                 .check(isRightAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
     fun defaultHorizontalNotVisibleAtOptAnchor() {
         val nonTargetSize = calculateNonTargetSizeWhenNotVisible(RecyclerView.HORIZONTAL);
         setAdapter(arrayOf("0", "1"), arrayOf(nonTargetSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtOptAnchorEdge))
 
         onView(withText("1"))
                 .check(isRightAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
     fun reverseHorizontalPartiallyVisibleAtAnchor() {
         val nonTargetSize = calculateNonTargetSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL);
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, nonTargetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = -targetVisiblePortion))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtOptAnchorEdge))
 
         onView(withText("0"))
                 .check(isLeftAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
     fun reverseHorizontalPartiallyVisibleAtOptAnchor() {
         val nonTargetSize = calculateNonTargetSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL);
         setAdapter(arrayOf("0", "1"), arrayOf(nonTargetSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtOptAnchorEdge))
 
         onView(withText("1"))
                 .check(isLeftAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
     fun reverseHorizontalNotVisibleAtAnchor() {
         val nonTargetSize = calculateNonTargetSizeWhenNotVisible(RecyclerView.HORIZONTAL);
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, nonTargetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = -(targetSize + nonTargetExtraPortion)))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtOptAnchorEdge))
 
         onView(withText("0"))
                 .check(isLeftAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
     fun reverseHorizontalNotVisibleAtOptAnchor() {
         val nonTargetSize = calculateNonTargetSizeWhenNotVisible(RecyclerView.HORIZONTAL);
         setAdapter(arrayOf("0", "1"), arrayOf(nonTargetSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtOptAnchorEdge))
 
         onView(withText("1"))
                 .check(isLeftAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
 
@@ -149,13 +154,14 @@ class ScrollToAtOptAnchorTest {
         setRtl()
         val nonTargetSize = calculateNonTargetSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL);
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, nonTargetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = -targetVisiblePortion))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtOptAnchorEdge))
 
         onView(withText("0"))
                 .check(isLeftAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
@@ -163,12 +169,13 @@ class ScrollToAtOptAnchorTest {
         setRtl()
         val nonTargetSize = calculateNonTargetSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL);
         setAdapter(arrayOf("0", "1"), arrayOf(nonTargetSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtOptAnchorEdge))
 
         onView(withText("1"))
                 .check(isLeftAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
@@ -176,13 +183,14 @@ class ScrollToAtOptAnchorTest {
         setRtl()
         val nonTargetSize = calculateNonTargetSizeWhenNotVisible(RecyclerView.HORIZONTAL);
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, nonTargetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = -(targetSize + nonTargetExtraPortion)))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtOptAnchorEdge))
 
         onView(withText("0"))
                 .check(isLeftAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
@@ -190,12 +198,13 @@ class ScrollToAtOptAnchorTest {
         setRtl()
         val nonTargetSize = calculateNonTargetSizeWhenNotVisible(RecyclerView.HORIZONTAL);
         setAdapter(arrayOf("0", "1"), arrayOf(nonTargetSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtOptAnchorEdge))
 
         onView(withText("1"))
                 .check(isLeftAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
@@ -203,13 +212,14 @@ class ScrollToAtOptAnchorTest {
         setRtl()
         val nonTargetSize = calculateNonTargetSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL);
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, nonTargetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = targetVisiblePortion))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtOptAnchorEdge))
 
         onView(withText("0"))
                 .check(isRightAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
@@ -217,12 +227,13 @@ class ScrollToAtOptAnchorTest {
         setRtl()
         val nonTargetSize = calculateNonTargetSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL);
         setAdapter(arrayOf("0", "1"), arrayOf(nonTargetSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtOptAnchorEdge))
 
         onView(withText("1"))
                 .check(isRightAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
@@ -230,13 +241,14 @@ class ScrollToAtOptAnchorTest {
         setRtl()
         val nonTargetSize = calculateNonTargetSizeWhenNotVisible(RecyclerView.HORIZONTAL);
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, nonTargetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(x = targetSize))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtOptAnchorEdge))
 
         onView(withText("0"))
                 .check(isRightAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
@@ -244,112 +256,121 @@ class ScrollToAtOptAnchorTest {
         setRtl()
         val nonTargetSize = calculateNonTargetSizeWhenNotVisible(RecyclerView.HORIZONTAL);
         setAdapter(arrayOf("0", "1"), arrayOf(nonTargetSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtOptAnchorEdge))
 
         onView(withText("1"))
                 .check(isRightAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
     fun defaultVerticalPartiallyVisibleAtAnchor() {
         val nonTargetSize = calculateNonTargetSizeWhenPartiallyVisible(RecyclerView.VERTICAL);
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, nonTargetSize))
-        setLayoutManager(LoopingLayoutManager.VERTICAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(y = targetVisiblePortion))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtOptAnchorEdge))
 
         onView(withText("0"))
                 .check(isBottomAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
     fun defaultVerticalPartiallyVisibleAtOptAnchor() {
         val nonTargetSize = calculateNonTargetSizeWhenPartiallyVisible(RecyclerView.VERTICAL);
         setAdapter(arrayOf("0", "1"), arrayOf(nonTargetSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.VERTICAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtOptAnchorEdge))
 
         onView(withText("1"))
                 .check(isBottomAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
     fun defaultVerticalNotVisibleAtAnchor() {
         val nonTargetSize = calculateNonTargetSizeWhenNotVisible(RecyclerView.VERTICAL);
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, nonTargetSize))
-        setLayoutManager(LoopingLayoutManager.VERTICAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(y = targetSize))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtOptAnchorEdge))
 
         onView(withText("0"))
                 .check(isBottomAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
     fun defaultVerticalNotVisibleAtOptAnchor() {
         val nonTargetSize = calculateNonTargetSizeWhenNotVisible(RecyclerView.VERTICAL);
         setAdapter(arrayOf("0", "1"), arrayOf(nonTargetSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.VERTICAL, false)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, false)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtOptAnchorEdge))
 
         onView(withText("1"))
                 .check(isBottomAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
     fun reverseVerticalPartiallyVisibleAtAnchor() {
         val nonTargetSize = calculateNonTargetSizeWhenPartiallyVisible(RecyclerView.VERTICAL);
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, nonTargetSize))
-        setLayoutManager(LoopingLayoutManager.VERTICAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(y = -targetVisiblePortion))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtOptAnchorEdge))
 
         onView(withText("0"))
                 .check(isTopAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
     fun reverseVerticalPartiallyVisibleAtOptAnchor() {
         val nonTargetSize = calculateNonTargetSizeWhenPartiallyVisible(RecyclerView.VERTICAL);
         setAdapter(arrayOf("0", "1"), arrayOf(nonTargetSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.VERTICAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtOptAnchorEdge))
 
         onView(withText("1"))
                 .check(isTopAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
     fun reverseVerticalNotVisibleAtAnchor() {
         val nonTargetSize = calculateNonTargetSizeWhenNotVisible(RecyclerView.VERTICAL);
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, nonTargetSize))
-        setLayoutManager(LoopingLayoutManager.VERTICAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollBy(y = -(targetSize + nonTargetExtraPortion)))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtOptAnchorEdge))
 
         onView(withText("0"))
                 .check(isTopAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
     fun reverseVerticalNotVisibleAtOptAnchor() {
         val nonTargetSize = calculateNonTargetSizeWhenNotVisible(RecyclerView.VERTICAL);
         setAdapter(arrayOf("0", "1"), arrayOf(nonTargetSize, targetSize))
-        setLayoutManager(LoopingLayoutManager.VERTICAL, true)
+        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, true)
         onView(withId(R.id.recycler))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtOptAnchorEdge))
 
         onView(withText("1"))
                 .check(isTopAlignedWith(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     fun calculateNonTargetSizeWhenPartiallyVisible(orientation: Int): Int {
