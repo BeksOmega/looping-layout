@@ -36,6 +36,11 @@ import kotlin.math.abs
 
 class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVectorProvider {
 
+    /**
+     * Describes the way the layout should be... laid out. Anchor index, anchor edge, and scroll
+     * offset. Used for triggering scrollTo, updating after an adapter change, and orientation
+     * changes.
+     */
     private var layoutRequest = LayoutRequest(anchorIndex = 0)
 
     /**
@@ -150,6 +155,8 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
     }
 
     override fun onSaveInstanceState(): Parcelable? {
+        // All of this information is based on keeping the item currently at the anchor edge
+        // at the anchor edge.
         val direction = getMovementDirectionFromAdapterDirection(TOWARDS_LOWER_INDICES)
         return LayoutRequest(
                 anchorIndex = getInitialIndex(direction),
@@ -168,8 +175,10 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         detachAndScrapAttachedViews(recycler)
         var layoutRect = nonScrollingEdges
 
-        // The initial index should be laid out at the edge associated with the adapter index, so
-        // we want to move away from that, hence the adapter direction is negated.
+        // A) We want to layout the item at the adapter index first, so that we can set the scroll offset.
+        // B) We want the item to be laid out /at/ the edge associated with the adapter direction.
+        // This means after it gets laid out we need to move /away/ from that edge.
+        // Hence the direction is inverted.
         val movementDir = getMovementDirectionFromAdapterDirection(-layoutRequest.adapterDirection)
         var prevItem: ListItem? = null
         val size = if (orientation == HORIZONTAL) width else height
@@ -940,26 +949,26 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         override val hiddenSize: Int
             get() = (-getDecoratedLeft(view)).coerceAtLeast(0)
 
-            override val leadingEdge: Int
+        override val leadingEdge: Int
             get() = getDecoratedRight(view)
 
-            override val followingEdge: Int
+        override val followingEdge: Int
             get() = getDecoratedLeft(view)
 
-            override val size: Int
+        override val size: Int
             get() = getDecoratedMeasuredWidth(view)
 
-            override fun getPositionOfItemFollowingSelf(item: ListItem, rect: Rect): Rect {
+        override fun getPositionOfItemFollowingSelf(item: ListItem, rect: Rect): Rect {
                 rect.right = followingEdge
                 rect.left = rect.right - item.size
                 return rect
             }
 
-            override fun getPositionOfSelfAsFirst(rect: Rect, hiddenAmount: Int): Rect {
-                    rect.right = (width - paddingRight) + hiddenAmount
-                    rect.left = rect.right - size
-                    return rect
-                }
+        override fun getPositionOfSelfAsFirst(rect: Rect, hiddenAmount: Int): Rect {
+            rect.right = (width - paddingRight) + hiddenAmount
+            rect.left = rect.right - size
+            return rect
+        }
     }
 
     private inner class LeadingBottomListItem(view: View) : ListItem(view) {
@@ -1071,10 +1080,9 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
          * A directional decider used to pick a direction to "move" in if one was not provided
          * explicitly.
          *
-         * This value cannot be packaged.
+         * This value cannot be parceled.
          */
         private var scrollStrategy: ((Int, LoopingLayoutManager, Int) -> Int)? = null
-
 
         /**
          * Has the layout request been initialized to make sure all of its public vars are valid?
@@ -1129,7 +1137,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
 
         /**
          * Resets this layout request to a default layout request so that the information can be
-         * initialized if onLayoutChildren gets called.
+         * re-initialized if onLayoutChildren gets called.
          */
         fun finishProcessing() {
             anchorIndex = RecyclerView.NO_POSITION
