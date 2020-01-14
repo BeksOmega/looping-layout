@@ -17,6 +17,7 @@
 
 package com.bekawestberg.loopinglayout.test.androidTest.utils
 
+import android.util.Log
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso
@@ -26,17 +27,20 @@ import com.bekawestberg.loopinglayout.library.LoopingLayoutManager
 import com.bekawestberg.loopinglayout.test.AdapterGeneric
 import com.bekawestberg.loopinglayout.test.R
 
-internal fun setLayoutManager(direction: Int, reverseLayout: Boolean) {
+internal fun setLayoutManager(direction: Int, reverseLayout: Boolean): LoopingLayoutManager {
     val context = InstrumentationRegistry.getInstrumentation().targetContext
+    val layoutManager = LoopingLayoutManager(context, direction, reverseLayout)
     Espresso.onView(ViewMatchers.withId(R.id.recycler))
-            .perform(RecyclerViewActions.setLayoutManager(
-                    LoopingLayoutManager(context, direction, reverseLayout)))
+            .perform(RecyclerViewActions.setLayoutManager(layoutManager))
+    return layoutManager
 }
 
-internal fun setAdapter(data: Array<String>, sizes: Array<Int>? = null) {
+internal fun setAdapter(data: Array<String>, sizes: Array<Int>? = null): AdapterGeneric {
+    val adapter = AdapterGeneric(data, sizes)
     Espresso.onView(ViewMatchers.withId(R.id.recycler))
             .perform(RecyclerViewActions.setAdapter(
-                    AdapterGeneric(data, sizes) as RecyclerView.Adapter<RecyclerView.ViewHolder>))
+                     adapter as RecyclerView.Adapter<RecyclerView.ViewHolder>))
+    return adapter
 }
 
 internal fun setRtl() {
