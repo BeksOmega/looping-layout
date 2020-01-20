@@ -66,6 +66,12 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             }
             return layoutRect
         }
+
+    private val visibleWidth: Int
+        get() = width - (paddingLeft + paddingRight)
+
+    private val visibleHeight: Int
+        get() = height - (paddingTop + paddingBottom)
     
     /**
      * Describes the adapter index of the view in the top/left -most position.
@@ -181,7 +187,8 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         // Hence the direction is inverted.
         val movementDir = getMovementDirectionFromAdapterDirection(-layoutRequest.adapterDirection)
         var prevItem: ListItem? = null
-        val size = if (orientation == HORIZONTAL) width else height
+        val size = if (orientation == HORIZONTAL) visibleWidth else visibleHeight
+        Log.v(TAG, "size: $size")
         var sizeFilled = 0
         var index = layoutRequest.anchorIndex
         while (sizeFilled < size) {
@@ -292,8 +299,10 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             // Scroll just enough to complete the scroll, or bring the view fully into view.
             val amountToScroll = hiddenSize.coerceAtMost(absDelta - amountScrolled)
             amountScrolled += amountToScroll
+            Log.v(TAG, "hiddenSize: $hiddenSize, amountToScroll: $amountToScroll")
             offsetChildren(amountToScroll * -movementDir)
             if (amountScrolled < absDelta) {
+                Log.v(TAG, "amount scrolled: $amountScrolled, absDelta: $absDelta")
                 index = stepIndex(index, movementDir, state)
                 val newView = createViewForIndex(index, movementDir, recycler)
                 val newItem = getItemForView(movementDir, newView)
@@ -425,11 +434,11 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         when {
             isTowardsTopLeft && isTowardsHigherIndices -> {
                 newIndex = index.loopedIncrement(count)
-                if (updateIndex) topLeftIndex = newIndex
+                if (updateIndex) topLeftIndex = newIndex; Log.v(TAG, "new top: $topLeftIndex"/*, Exception()*/)
             }
             isTowardsTopLeft && isTowardsLowerIndices -> {
                 newIndex = index.loopedDecrement(count)
-                if (updateIndex)  topLeftIndex = newIndex
+                if (updateIndex)  topLeftIndex = newIndex; Log.v(TAG, "new top: $topLeftIndex"/*, Exception()*/)
             }
             isTowardsBottomRight && isTowardsHigherIndices -> {
                 newIndex = index.loopedIncrement(count)
@@ -462,9 +471,9 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
 
         return when {
             isVertical && isTowardsTopLeft -> LeadingBottomListItem(view)
-            isVertical && isTowardsBottomRight -> LeadingTopListItem(view, height - paddingBottom)
+            isVertical && isTowardsBottomRight -> LeadingTopListItem(view)
             isHorizontal && isTowardsTopLeft -> LeadingRightListItem(view)
-            isHorizontal && isTowardsBottomRight -> LeadingLeftListItem(view, width - paddingRight)
+            isHorizontal && isTowardsBottomRight -> LeadingLeftListItem(view)
             else -> throw IllegalStateException("Invalid movement state.")
         }
     }
@@ -496,6 +505,8 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         recycler: RecyclerView.Recycler,
         state: RecyclerView.State
     ) {
+        Log.v(TAG, "top/left: $topLeftIndex")
+        Log.v(TAG, "bottom/right: $bottomRightIndex")
         val initialIndex = getInitialIndex(movementDir)
         // The first visible item will bump us to zero.
         var distanceFromStart = -1
@@ -541,6 +552,8 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             topLeftIndex = initialIndex.loop(changeInPosition, count)
         }
 
+        Log.v(TAG, "top/left after: $topLeftIndex")
+        Log.v(TAG, "bottom/right after: $bottomRightIndex")
     }
 
     /**
@@ -884,12 +897,11 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
     }
 
     private inner class LeadingLeftListItem(
-        view: View,
-        private val mListRight: Int
+        view: View
     ) : ListItem(view) {
 
         override val hiddenSize: Int
-            get() = (getDecoratedRight(view) - mListRight).coerceAtLeast(0)
+            get() = (getDecoratedRight(view) - (width - paddingRight)).coerceAtLeast(0)
 
         override val leadingEdge: Int
             get() = getDecoratedLeft(view)
@@ -914,12 +926,11 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
     }
 
     private inner class LeadingTopListItem(
-        view: View,
-        private val mListBottom: Int
+        view: View
     ) : ListItem(view) {
 
         override val hiddenSize: Int
-            get() = (getDecoratedBottom(view) - mListBottom).coerceAtLeast(0)
+            get() = (getDecoratedBottom(view) - (height - paddingBottom)).coerceAtLeast(0)
 
         override val leadingEdge: Int
             get() = getDecoratedTop(view)
@@ -947,7 +958,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
     private inner class LeadingRightListItem(view: View) : ListItem(view) {
 
         override val hiddenSize: Int
-            get() = (-getDecoratedLeft(view)).coerceAtLeast(0)
+            get() = (paddingTop - getDecoratedLeft(view)).coerceAtLeast(0)
 
         override val leadingEdge: Int
             get() = getDecoratedRight(view)
@@ -974,7 +985,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
     private inner class LeadingBottomListItem(view: View) : ListItem(view) {
 
         override val hiddenSize: Int
-            get() = (-getDecoratedTop(view)).coerceAtLeast(0)
+            get() = (paddingTop - getDecoratedTop(view)).coerceAtLeast(0)
 
         override val leadingEdge: Int
             get() = getDecoratedBottom(view)

@@ -20,6 +20,7 @@ package com.bekawestberg.loopinglayout.test
 import android.os.Bundle
 
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bekawestberg.loopinglayout.library.LoopingLayoutManager
 import com.bekawestberg.loopinglayout.library.addViewsAtOptAnchorEdge
@@ -29,8 +30,8 @@ class ActivityVertical : AppCompatActivity() {
     private lateinit var mRecyclerView: RecyclerView
     private var mAdapter: AdapterGeneric = AdapterGeneric(
             arrayOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"))
-    private var mLayoutManager: LoopingLayoutManager =
-            LoopingLayoutManager(this, LoopingLayoutManager.VERTICAL, true)
+    private var mLayoutManager: RecyclerView.LayoutManager =
+            LoopingLayoutManager(this, RecyclerView.VERTICAL, true)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,7 +43,7 @@ class ActivityVertical : AppCompatActivity() {
         mRecyclerView.setHasFixedSize(true)
         mRecyclerView.layoutManager = mLayoutManager
         mRecyclerView.adapter = mAdapter
-        mLayoutManager.smoothScrollDirectionDecider = ::addViewsAtOptAnchorEdge
+        //mLayoutManager.smoothScrollDirectionDecider = ::addViewsAtOptAnchorEdge
 
         val button = findViewById<FloatingActionButton>(R.id.fab)
         button.setOnClickListener { mAdapter.notifyDataSetChanged() }
