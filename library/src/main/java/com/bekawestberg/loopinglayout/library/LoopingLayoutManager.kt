@@ -67,11 +67,11 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             return layoutRect
         }
 
-    private val visibleWidth: Int
-        get() = width - (paddingLeft + paddingRight)
+    val visibleWidth: Int
+        get() = width - paddingLeft - paddingRight
 
-    private val visibleHeight: Int
-        get() = height - (paddingTop + paddingBottom)
+    val visibleHeight: Int
+        get() = height - paddingTop - paddingBottom
     
     /**
      * Describes the adapter index of the view in the top/left -most position.

@@ -199,10 +199,11 @@ class FindViewClosestToAnchorTest {
     private fun calculateSizeOfOneItem(orientation: Int): Int {
         val activity = activityRule.activity
         val recycler = activity.findViewById<RecyclerView>(R.id.recycler) ?: return 0
+        val layoutManager: LoopingLayoutManager = recycler.layoutManager as LoopingLayoutManager;
         return if (orientation == RecyclerView.HORIZONTAL) {
-            recycler.width - (sizeOfZeroItem + visiblePortionOfSecondZeroItem)
+            layoutManager.visibleWidth - sizeOfZeroItem - visiblePortionOfSecondZeroItem
         } else {
-            recycler.height - (sizeOfZeroItem + visiblePortionOfSecondZeroItem)
+            layoutManager.visibleHeight - sizeOfZeroItem - visiblePortionOfSecondZeroItem
         }
     }
 }

@@ -11,6 +11,10 @@ import androidx.test.rule.ActivityTestRule
 import com.bekawestberg.loopinglayout.library.LoopingLayoutManager
 import com.bekawestberg.loopinglayout.library.addViewsAtAnchorEdge
 import com.bekawestberg.loopinglayout.test.androidTest.utils.RecyclerViewActions
+import com.bekawestberg.loopinglayout.test.androidTest.utils.ViewAssertions.isBottomAlignedWithPadding
+import com.bekawestberg.loopinglayout.test.androidTest.utils.ViewAssertions.isLeftAlignedWithPadding
+import com.bekawestberg.loopinglayout.test.androidTest.utils.ViewAssertions.isRightAlignedWithPadding
+import com.bekawestberg.loopinglayout.test.androidTest.utils.ViewAssertions.isTopAlignedWithPadding
 import com.bekawestberg.loopinglayout.test.androidTest.utils.setAdapter
 import com.bekawestberg.loopinglayout.test.androidTest.utils.setLayoutManager
 import com.bekawestberg.loopinglayout.test.androidTest.utils.setRtl
@@ -50,7 +54,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtAnchorEdge))
 
         onView(withText("0"))
-                .check(isLeftAlignedWith(withId(R.id.recycler)))
+                .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
@@ -63,7 +67,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtAnchorEdge))
 
         onView(withText("1"))
-                .check(isLeftAlignedWith(withId(R.id.recycler)))
+                .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
@@ -77,7 +81,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtAnchorEdge))
 
         onView(withText("0"))
-                .check(isLeftAlignedWith(withId(R.id.recycler)))
+                .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
@@ -91,7 +95,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtAnchorEdge))
 
         onView(withText("1"))
-                .check(isLeftAlignedWith(withId(R.id.recycler)))
+                .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
@@ -105,7 +109,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtAnchorEdge))
 
         onView(withText("0"))
-                .check(isRightAlignedWith(withId(R.id.recycler)))
+                .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
@@ -118,7 +122,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtAnchorEdge))
 
         onView(withText("1"))
-                .check(isRightAlignedWith(withId(R.id.recycler)))
+                .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
@@ -132,7 +136,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtAnchorEdge))
 
         onView(withText("0"))
-                .check(isRightAlignedWith(withId(R.id.recycler)))
+                .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
@@ -145,7 +149,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtAnchorEdge))
 
         onView(withText("1"))
-                .check(isRightAlignedWith(withId(R.id.recycler)))
+                .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
@@ -160,7 +164,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtAnchorEdge))
 
         onView(withText("0"))
-                .check(isRightAlignedWith(withId(R.id.recycler)))
+                .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
@@ -174,7 +178,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtAnchorEdge))
 
         onView(withText("1"))
-                .check(isRightAlignedWith(withId(R.id.recycler)))
+                .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
@@ -189,7 +193,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtAnchorEdge))
 
         onView(withText("0"))
-                .check(isRightAlignedWith(withId(R.id.recycler)))
+                .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
@@ -203,7 +207,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtAnchorEdge))
 
         onView(withText("1"))
-                .check(isRightAlignedWith(withId(R.id.recycler)))
+                .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
@@ -218,7 +222,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtAnchorEdge))
 
         onView(withText("0"))
-                .check(isLeftAlignedWith(withId(R.id.recycler)))
+                .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
@@ -232,7 +236,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtAnchorEdge))
 
         onView(withText("1"))
-                .check(isLeftAlignedWith(withId(R.id.recycler)))
+                .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
@@ -247,7 +251,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtAnchorEdge))
 
         onView(withText("0"))
-                .check(isLeftAlignedWith(withId(R.id.recycler)))
+                .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
@@ -261,7 +265,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtAnchorEdge))
 
         onView(withText("1"))
-                .check(isLeftAlignedWith(withId(R.id.recycler)))
+                .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
@@ -276,7 +280,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtAnchorEdge))
 
         onView(withText("0"))
-                .check(isTopAlignedWith(withId(R.id.recycler)))
+                .check((::isTopAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
@@ -289,7 +293,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtAnchorEdge))
 
         onView(withText("1"))
-                .check(isTopAlignedWith(withId(R.id.recycler)))
+                .check((::isTopAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
@@ -303,7 +307,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtAnchorEdge))
 
         onView(withText("0"))
-                .check(isTopAlignedWith(withId(R.id.recycler)))
+                .check((::isTopAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
@@ -316,7 +320,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtAnchorEdge))
 
         onView(withText("1"))
-                .check(isTopAlignedWith(withId(R.id.recycler)))
+                .check((::isTopAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
@@ -330,7 +334,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtAnchorEdge))
 
         onView(withText("0"))
-                .check(isBottomAlignedWith(withId(R.id.recycler)))
+                .check((::isBottomAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
@@ -343,7 +347,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtAnchorEdge))
 
         onView(withText("1"))
-                .check(isBottomAlignedWith(withId(R.id.recycler)))
+                .check((::isBottomAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
@@ -357,7 +361,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtAnchorEdge))
 
         onView(withText("0"))
-                .check(isBottomAlignedWith(withId(R.id.recycler)))
+                .check((::isBottomAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
@@ -370,7 +374,7 @@ class ScrollToAtAnchorTest {
                 .perform(RecyclerViewActions.scrollToPositionViaManager(1, ::addViewsAtAnchorEdge))
 
         onView(withText("1"))
-                .check(isBottomAlignedWith(withId(R.id.recycler)))
+                .check((::isBottomAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
