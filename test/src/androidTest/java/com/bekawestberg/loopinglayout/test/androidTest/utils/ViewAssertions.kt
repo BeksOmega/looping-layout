@@ -56,7 +56,6 @@ object ViewAssertions {
                                 noViewException.viewMatcherDescription))
                 throw noViewException
             } else {
-                // TODO: describe the foundView matcher instead of the foundView itself.
                 description
                         .appendText("View:")
                         .appendText(HumanReadables.describe(foundView))
@@ -137,18 +136,6 @@ object ViewAssertions {
             Position.TOP_PADDING -> return rect1.top == rect2.top
             Position.RIGHT_PADDING -> return rect1.right == rect2.right
             Position.BOTTOM_PADDING -> return rect1.bottom == rect2.bottom
-            /*PositionAssertions.Position.COMPLETELY_LEFT_OF -> return location1[0] + view1.width <= location2[0]
-            PositionAssertions.Position.COMPLETELY_RIGHT_OF -> return location2[0] + view2.width <= location1[0]
-            PositionAssertions.Position.COMPLETELY_ABOVE -> return location1[1] + view1.height <= location2[1]
-            PositionAssertions.Position.COMPLETELY_BELOW -> return location2[1] + view2.height <= location1[1]
-            PositionAssertions.Position.PARTIALLY_LEFT_OF -> return location1[0] < location2[0] && location2[0] < location1[0] + view1.width
-            PositionAssertions.Position.PARTIALLY_RIGHT_OF -> return location2[0] < location1[0] && location1[0] < location2[0] + view2.width
-            PositionAssertions.Position.PARTIALLY_ABOVE -> return location1[1] < location2[1] && location2[1] < location1[1] + view1.height
-            PositionAssertions.Position.PARTIALLY_BELOW -> return location2[1] < location1[1] && location1[1] < location2[1] + view2.height
-            PositionAssertions.Position.LEFT_ALIGNED -> return location1[0] == location2[0]
-            PositionAssertions.Position.RIGHT_ALIGNED -> return location1[0] + view1.width == location2[0] + view2.width
-            PositionAssertions.Position.TOP_ALIGNED -> return location1[1] == location2[1]
-            PositionAssertions.Position.BOTTOM_ALIGNED -> return location1[1] + view1.height == location2[1] + view2.height*/
             else -> return false
         }
     }

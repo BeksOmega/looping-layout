@@ -71,13 +71,13 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
      * The width of the layout - not the recycler.
      * AKA the width of the recycler, minus the padding on the left and right.
      */
-    val visibleWidth: Int
+    val layoutWidth: Int
         get() = width - paddingLeft - paddingRight
     /**
      * The height of the layout - not the recycler.
      * AKA the height of the recycler, minus the padding on the top and bottom.
      */
-    val visibleHeight: Int
+    val layoutHeight: Int
         get() = height - paddingTop - paddingBottom
     
     /**
@@ -194,7 +194,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         // Hence the direction is inverted.
         val movementDir = getMovementDirectionFromAdapterDirection(-layoutRequest.adapterDirection)
         var prevItem: ListItem? = null
-        val size = if (orientation == HORIZONTAL) visibleWidth else visibleHeight
+        val size = if (orientation == HORIZONTAL) layoutWidth else layoutHeight
         var sizeFilled = 0
         var index = layoutRequest.anchorIndex
         while (sizeFilled < size) {
