@@ -71,9 +71,9 @@ fun childClosestToMiddle(
     var minDistance = Int.MAX_VALUE
     var closestView: View? = null
     val layoutMiddle = if (layoutManager.orientation == LoopingLayoutManager.HORIZONTAL) {
-        layoutManager.paddingLeft + (layoutManager.width / 2)
+        layoutManager.paddingLeft + (layoutManager.layoutWidth / 2)
     } else {
-        layoutManager.paddingTop + (layoutManager.height / 2)
+        layoutManager.paddingTop + (layoutManager.layoutHeight / 2)
     }
     for (i in 0 until layoutManager.childCount) {
         val view = layoutManager.getChildAt(i) ?: return null

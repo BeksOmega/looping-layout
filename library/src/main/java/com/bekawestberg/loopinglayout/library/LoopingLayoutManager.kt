@@ -66,6 +66,19 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             }
             return layoutRect
         }
+
+    /**
+     * The width of the layout - not the recycler.
+     * AKA the width of the recycler, minus the padding on the left and right.
+     */
+    val layoutWidth: Int
+        get() = width - paddingLeft - paddingRight
+    /**
+     * The height of the layout - not the recycler.
+     * AKA the height of the recycler, minus the padding on the top and bottom.
+     */
+    val layoutHeight: Int
+        get() = height - paddingTop - paddingBottom
     
     /**
      * Describes the adapter index of the view in the top/left -most position.
@@ -181,7 +194,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         // Hence the direction is inverted.
         val movementDir = getMovementDirectionFromAdapterDirection(-layoutRequest.adapterDirection)
         var prevItem: ListItem? = null
-        val size = if (orientation == HORIZONTAL) width else height
+        val size = if (orientation == HORIZONTAL) layoutWidth else layoutHeight
         var sizeFilled = 0
         var index = layoutRequest.anchorIndex
         while (sizeFilled < size) {
@@ -462,9 +475,9 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
 
         return when {
             isVertical && isTowardsTopLeft -> LeadingBottomListItem(view)
-            isVertical && isTowardsBottomRight -> LeadingTopListItem(view, height - paddingBottom)
+            isVertical && isTowardsBottomRight -> LeadingTopListItem(view)
             isHorizontal && isTowardsTopLeft -> LeadingRightListItem(view)
-            isHorizontal && isTowardsBottomRight -> LeadingLeftListItem(view, width - paddingRight)
+            isHorizontal && isTowardsBottomRight -> LeadingLeftListItem(view)
             else -> throw IllegalStateException("Invalid movement state.")
         }
     }
@@ -540,7 +553,6 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         } else {
             topLeftIndex = initialIndex.loop(changeInPosition, count)
         }
-
     }
 
     /**
@@ -884,12 +896,11 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
     }
 
     private inner class LeadingLeftListItem(
-        view: View,
-        private val mListRight: Int
+        view: View
     ) : ListItem(view) {
 
         override val hiddenSize: Int
-            get() = (getDecoratedRight(view) - mListRight).coerceAtLeast(0)
+            get() = (getDecoratedRight(view) - (width - paddingRight)).coerceAtLeast(0)
 
         override val leadingEdge: Int
             get() = getDecoratedLeft(view)
@@ -914,12 +925,11 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
     }
 
     private inner class LeadingTopListItem(
-        view: View,
-        private val mListBottom: Int
+        view: View
     ) : ListItem(view) {
 
         override val hiddenSize: Int
-            get() = (getDecoratedBottom(view) - mListBottom).coerceAtLeast(0)
+            get() = (getDecoratedBottom(view) - (height - paddingBottom)).coerceAtLeast(0)
 
         override val leadingEdge: Int
             get() = getDecoratedTop(view)
@@ -947,7 +957,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
     private inner class LeadingRightListItem(view: View) : ListItem(view) {
 
         override val hiddenSize: Int
-            get() = (-getDecoratedLeft(view)).coerceAtLeast(0)
+            get() = (paddingLeft - getDecoratedLeft(view)).coerceAtLeast(0)
 
         override val leadingEdge: Int
             get() = getDecoratedRight(view)
@@ -974,7 +984,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
     private inner class LeadingBottomListItem(view: View) : ListItem(view) {
 
         override val hiddenSize: Int
-            get() = (-getDecoratedTop(view)).coerceAtLeast(0)
+            get() = (paddingTop - getDecoratedTop(view)).coerceAtLeast(0)
 
         override val leadingEdge: Int
             get() = getDecoratedBottom(view)
