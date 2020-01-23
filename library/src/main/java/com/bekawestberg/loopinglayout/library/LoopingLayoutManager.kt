@@ -67,9 +67,16 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             return layoutRect
         }
 
+    /**
+     * The width of the layout - not the recycler.
+     * AKA the width of the recycler, minus the padding on the left and right.
+     */
     val visibleWidth: Int
         get() = width - paddingLeft - paddingRight
-
+    /**
+     * The height of the layout - not the recycler.
+     * AKA the height of the recycler, minus the padding on the top and bottom.
+     */
     val visibleHeight: Int
         get() = height - paddingTop - paddingBottom
     
@@ -188,7 +195,6 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         val movementDir = getMovementDirectionFromAdapterDirection(-layoutRequest.adapterDirection)
         var prevItem: ListItem? = null
         val size = if (orientation == HORIZONTAL) visibleWidth else visibleHeight
-        Log.v(TAG, "size: $size")
         var sizeFilled = 0
         var index = layoutRequest.anchorIndex
         while (sizeFilled < size) {
@@ -299,10 +305,8 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             // Scroll just enough to complete the scroll, or bring the view fully into view.
             val amountToScroll = hiddenSize.coerceAtMost(absDelta - amountScrolled)
             amountScrolled += amountToScroll
-            Log.v(TAG, "hiddenSize: $hiddenSize, amountToScroll: $amountToScroll")
             offsetChildren(amountToScroll * -movementDir)
             if (amountScrolled < absDelta) {
-                Log.v(TAG, "amount scrolled: $amountScrolled, absDelta: $absDelta")
                 index = stepIndex(index, movementDir, state)
                 val newView = createViewForIndex(index, movementDir, recycler)
                 val newItem = getItemForView(movementDir, newView)
@@ -434,11 +438,11 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         when {
             isTowardsTopLeft && isTowardsHigherIndices -> {
                 newIndex = index.loopedIncrement(count)
-                if (updateIndex) topLeftIndex = newIndex; Log.v(TAG, "new top: $topLeftIndex"/*, Exception()*/)
+                if (updateIndex) topLeftIndex = newIndex
             }
             isTowardsTopLeft && isTowardsLowerIndices -> {
                 newIndex = index.loopedDecrement(count)
-                if (updateIndex)  topLeftIndex = newIndex; Log.v(TAG, "new top: $topLeftIndex"/*, Exception()*/)
+                if (updateIndex)  topLeftIndex = newIndex
             }
             isTowardsBottomRight && isTowardsHigherIndices -> {
                 newIndex = index.loopedIncrement(count)
@@ -505,8 +509,6 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         recycler: RecyclerView.Recycler,
         state: RecyclerView.State
     ) {
-        Log.v(TAG, "top/left: $topLeftIndex")
-        Log.v(TAG, "bottom/right: $bottomRightIndex")
         val initialIndex = getInitialIndex(movementDir)
         // The first visible item will bump us to zero.
         var distanceFromStart = -1
@@ -551,9 +553,6 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         } else {
             topLeftIndex = initialIndex.loop(changeInPosition, count)
         }
-
-        Log.v(TAG, "top/left after: $topLeftIndex")
-        Log.v(TAG, "bottom/right after: $bottomRightIndex")
     }
 
     /**
@@ -958,7 +957,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
     private inner class LeadingRightListItem(view: View) : ListItem(view) {
 
         override val hiddenSize: Int
-            get() = (paddingTop - getDecoratedLeft(view)).coerceAtLeast(0)
+            get() = (paddingLeft - getDecoratedLeft(view)).coerceAtLeast(0)
 
         override val leadingEdge: Int
             get() = getDecoratedRight(view)
