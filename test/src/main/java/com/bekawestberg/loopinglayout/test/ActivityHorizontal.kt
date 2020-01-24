@@ -18,9 +18,13 @@
 package com.bekawestberg.loopinglayout.test
 
 import android.os.Bundle
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.bekawestberg.loopinglayout.library.LoopingLayoutManager
+import com.bekawestberg.loopinglayout.library.LoopingSnapHelper
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class ActivityHorizontal : AppCompatActivity() {
@@ -32,6 +36,7 @@ class ActivityHorizontal : AppCompatActivity() {
             LoopingLayoutManager(this, RecyclerView.HORIZONTAL, false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.v("LoopingLayoutManager", "test")
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         mRecyclerView = findViewById(R.id.recycler)
@@ -42,6 +47,9 @@ class ActivityHorizontal : AppCompatActivity() {
         mRecyclerView.layoutManager = mLayoutManager
         mRecyclerView.adapter = mAdapter
         /*mLayoutManager.smoothScrollDirectionDecider = ::addViewsAtOptAnchorEdge*/
+
+        val snapHelper = LoopingSnapHelper()
+        snapHelper.attachToRecyclerView(mRecyclerView)
 
         val button = findViewById<FloatingActionButton>(R.id.fab)
         button.setOnClickListener {

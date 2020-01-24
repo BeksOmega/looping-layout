@@ -33,6 +33,8 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.LayoutManager
 import androidx.recyclerview.widget.RecyclerView.LayoutParams
 import kotlin.math.abs
+import kotlin.math.ceil
+import kotlin.math.sign
 
 class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVectorProvider {
 
@@ -292,6 +294,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         if (childCount == 0 || delta == 0) {
             return 0
         }
+        Log.v(TAG, "scroll")
         var layoutRect = nonScrollingEdges
 
         val movementDir = Integer.signum(delta)
@@ -718,6 +721,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
      * @return The vector which points towards the given target position.
      */
     fun computeScrollVectorForPosition(targetPosition: Int, count: Int): PointF {
+        Log.v(TAG, "target: $targetPosition count: $count")
         val movementDir = smoothScrollDirectionDecider(targetPosition, this, count)
         return if (orientation == HORIZONTAL) {
             PointF(movementDir.toFloat(), 0F)
@@ -828,6 +832,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             state: RecyclerView.State,
             position: Int
     ) {
+        Log.v(TAG, "Smooth scroll.");
         val loopingSmoothScroller = LoopingSmoothScroller(recyclerView.context, state)
         loopingSmoothScroller.targetPosition = position
         startSmoothScroll(loopingSmoothScroller)
@@ -1020,11 +1025,41 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
     ) : LinearSmoothScroller(context) {
 
         /**
+         * This describes the number of matching views we want to pass over before snapping to the
+         * next matching one.
+         */
+        var matchingViewCount = 0
+
+        override fun setTargetPosition(targetPosition: Int) {
+            Log.v("SnapHelper", "targetPosition $targetPosition")
+            val target = 0.loop(targetPosition, state.itemCount);
+            super.setTargetPosition(target)
+            val vector = computeScrollVectorForPosition(target) ?: return
+            val manager = layoutManager as LoopingLayoutManager;
+            val direction = if (manager.canScrollHorizontally()) {
+                sign(vector.x).toInt()
+            } else {
+                sign(vector.y).toInt()
+            }
+
+            val edgeViewIndex = if (direction == TOWARDS_TOP_LEFT) {
+                manager.topLeftIndex
+            } else {
+                manager.bottomRightIndex
+            }
+
+            // TODO: Explain how this math works.
+            val viewCount = (targetPosition - edgeViewIndex) / state.itemCount.toFloat()
+            matchingViewCount = ceil(abs(viewCount)).toInt() - 1
+        }
+
+        /**
          * Tells the LoopingLayoutManager to start laying out extra (i.e. not visible) views. This
          * allows the target view to be found before it becomes visible, which helps with smooth
          * deceleration.
          */
         override fun onStart() {
+            Log.v(TAG, "start")
             // Based on the Material Design Guidelines, 500 ms should be plenty of time to decelerate.
             val rate = calculateSpeedPerPixel(context.resources.displayMetrics)  // MS/Pixel
             val time = 500  // MS.
@@ -1036,6 +1071,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
          * to lay out views the user can't see.
          */
         override fun onStop() {
+            Log.v(TAG, "stop")
             (layoutManager as LoopingLayoutManager).extraLayoutSpace = 0
         }
 
@@ -1046,6 +1082,15 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             }
             Log.w(TAG, "A LoopingSmoothScroller should only be attached to a LoopingLayoutManager.")
             return null
+        }
+
+        override fun onChildAttachedToWindow(child: View) {
+            if (getChildPosition(child) == targetPosition) {
+                matchingViewCount--
+                if (matchingViewCount == -1) {
+                    super.onChildAttachedToWindow(child)
+                }
+            }
         }
     }
 
