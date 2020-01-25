@@ -294,7 +294,6 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         if (childCount == 0 || delta == 0) {
             return 0
         }
-        Log.v(TAG, "scroll")
         var layoutRect = nonScrollingEdges
 
         val movementDir = Integer.signum(delta)
@@ -1019,38 +1018,57 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
      *    2) The layout manager must be given the state.itemCount to properly calculate
      *       a scroll vector.
      */
-    private inner class LoopingSmoothScroller(
-            val context: Context,
-            val state: RecyclerView.State
-    ) : LinearSmoothScroller(context) {
+    inner class LoopingSmoothScroller(val context: Context) : LinearSmoothScroller(context) {
+
+        private var state: RecyclerView.State? = null
+
+        private val count: Int
+            get() = state?.itemCount ?: itemCount
+
+        lateinit var layoutManager: LoopingLayoutManager
+
+        constructor(context: Context, state: RecyclerView.State) : this(context ) {
+            this.state = state
+        }
 
         /**
          * This describes the number of matching views we want to pass over before snapping to the
          * next matching one.
          */
-        var matchingViewCount = 0
+        private var matchingViewCount = 0
 
         override fun setTargetPosition(targetPosition: Int) {
+            setTargetPosition(targetPosition, null)
+        }
+
+        fun setTargetPosition(
+                targetPosition: Int,
+                _layoutManager: LoopingLayoutManager? = null
+        ) {
+            if (_layoutManager != null) {
+                this.layoutManager = _layoutManager
+            }
             Log.v("SnapHelper", "targetPosition $targetPosition")
-            val target = 0.loop(targetPosition, state.itemCount);
+            val target = 0.loop(targetPosition, count);
             super.setTargetPosition(target)
+
             val vector = computeScrollVectorForPosition(target) ?: return
-            val manager = layoutManager as LoopingLayoutManager;
-            val direction = if (manager.canScrollHorizontally()) {
+            val direction = if (layoutManager.canScrollHorizontally()) {
                 sign(vector.x).toInt()
             } else {
                 sign(vector.y).toInt()
             }
 
             val edgeViewIndex = if (direction == TOWARDS_TOP_LEFT) {
-                manager.topLeftIndex
+                layoutManager.topLeftIndex
             } else {
-                manager.bottomRightIndex
+                layoutManager.bottomRightIndex
             }
 
             // TODO: Explain how this math works.
-            val viewCount = (targetPosition - edgeViewIndex) / state.itemCount.toFloat()
+            val viewCount = (targetPosition - edgeViewIndex) / count.toFloat()
             matchingViewCount = ceil(abs(viewCount)).toInt() - 1
+            Log.v("SnapHelper", "target: $target edgeIndex: $edgeViewIndex count: $count viewCount: $viewCount matchingCount: $matchingViewCount")
         }
 
         /**
@@ -1078,7 +1096,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         override fun computeScrollVectorForPosition(targetPosition: Int): PointF? {
             val layoutManager = layoutManager  // Enables smart cast.
             if (layoutManager is LoopingLayoutManager) {
-                return layoutManager.computeScrollVectorForPosition(targetPosition, state.itemCount)
+                return layoutManager.computeScrollVectorForPosition(targetPosition, count)
             }
             Log.w(TAG, "A LoopingSmoothScroller should only be attached to a LoopingLayoutManager.")
             return null
@@ -1087,10 +1105,38 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         override fun onChildAttachedToWindow(child: View) {
             if (getChildPosition(child) == targetPosition) {
                 matchingViewCount--
+                Log.v("SnapHelper", "match: $targetPosition new count: $matchingViewCount")
                 if (matchingViewCount == -1) {
                     super.onChildAttachedToWindow(child)
                 }
             }
+        }
+
+        private val TARGET_SEEK_SCROLL_DISTANCE_PX = 10000
+        private val TARGET_SEEK_EXTRA_SCROLL_RATIO = 1.2f
+
+        override fun updateActionForInterimTarget(action: RecyclerView.SmoothScroller.Action) {
+            Log.v(TAG, "update")
+            // find an interim target position
+            val scrollVector = computeScrollVectorForPosition(targetPosition)
+            if (scrollVector == null || scrollVector.x == 0f && scrollVector.y == 0f) {
+                val target = targetPosition
+                action.jumpTo(target)
+                stop()
+                return
+            }
+            normalize(scrollVector)
+            mTargetVector = scrollVector
+
+            mInterimTargetDx = (TARGET_SEEK_SCROLL_DISTANCE_PX * scrollVector.x).toInt()
+            mInterimTargetDy = (TARGET_SEEK_SCROLL_DISTANCE_PX * scrollVector.y).toInt()
+            val time = calculateTimeForScrolling(TARGET_SEEK_SCROLL_DISTANCE_PX)
+            // To avoid UI hiccups, trigger a smooth scroll to a distance little further than the
+            // interim target. Since we track the distance travelled in onSeekTargetStep callback, it
+            // won't actually scroll more than what we need.
+            action.update((mInterimTargetDx * TARGET_SEEK_EXTRA_SCROLL_RATIO).toInt(),
+                    (mInterimTargetDy * TARGET_SEEK_EXTRA_SCROLL_RATIO).toInt(),
+                    (time * TARGET_SEEK_EXTRA_SCROLL_RATIO).toInt(), mDecelerateInterpolator)
         }
     }
 

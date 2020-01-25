@@ -30,8 +30,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 class ActivityHorizontal : AppCompatActivity() {
     private lateinit var mRecyclerView: RecyclerView
     private var mAdapter: AdapterGeneric = AdapterGeneric(
-            Array(16) { i -> i.toString()},
-            Array(16) { i -> 250})
+            Array(7) { i -> i.toString()},
+            Array(7) { i -> 250})
     private var mLayoutManager =
             LoopingLayoutManager(this, RecyclerView.HORIZONTAL, false)
 

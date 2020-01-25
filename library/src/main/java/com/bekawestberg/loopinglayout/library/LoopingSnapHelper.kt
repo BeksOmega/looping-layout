@@ -18,8 +18,12 @@ class LoopingSnapHelper : LinearSnapHelper() {
 
     private var mVerticalHelper: OrientationHelper? = null
 
+    private lateinit var mRecyclerView: RecyclerView
+
+
     override fun attachToRecyclerView(recyclerView: RecyclerView?) {
         Log.v(TAG, "attached")
+        mRecyclerView = recyclerView!!
         super.attachToRecyclerView(recyclerView)
     }
 
@@ -38,10 +42,10 @@ class LoopingSnapHelper : LinearSnapHelper() {
             return RecyclerView.NO_POSITION
         }
 
-        val vectorProvider = layoutManager as LoopingLayoutManager
+        layoutManager as LoopingLayoutManager
         // deltaJumps sign comes from the velocity which may not match the order of children in
         // the LayoutManager.
-        val endDirection = vectorProvider.convertAdapterDirToMovementDir(
+        val endDirection = layoutManager.convertAdapterDirToMovementDir(
                 LoopingLayoutManager.TOWARDS_HIGHER_INDICES)
 
         val deltaJump = if (layoutManager.canScrollHorizontally()) {
@@ -63,8 +67,11 @@ class LoopingSnapHelper : LinearSnapHelper() {
         }
 
         //var targetPos = currentPosition + deltaJump
+
         var targetPos = currentPosition + deltaJump/*currentPosition.loop(deltaJump, layoutManager.itemCount)*/
         Log.v(TAG, "currentPos: $currentPosition delta: $deltaJump targetpos: $targetPos")
+        // Input doesn't matter because we set the return to be static above.
+
         /*if (targetPos < 0) {
             targetPos = 0
         }
@@ -73,6 +80,7 @@ class LoopingSnapHelper : LinearSnapHelper() {
         }*/
         //Log.v(TAG, "targetpos after: $targetPos")
         // var targetPos = currentPosition.loop(deltaJump, layoutManager.itemCount)
+
         return targetPos
     }
 
@@ -142,35 +150,17 @@ class LoopingSnapHelper : LinearSnapHelper() {
     }
 
     override fun createScroller(layoutManager: RecyclerView.LayoutManager): RecyclerView.SmoothScroller? {
-        Log.v(TAG, "called")
-        return if (layoutManager !is LoopingLayoutManager) {
-            // TODO: Log!
-            null
-        } else  {
-            object : LinearSmoothScroller(mRecyclerView.context) {
-                protected override fun onTargetFound(targetView: View, state: RecyclerView.State?, action: RecyclerView.SmoothScroller.Action) {
-                    if (mRecyclerView == null) {
-                        // The associated RecyclerView has been removed so there is no action to take.
-                        return
-                    }
-                    val snapDistances = calculateDistanceToFinalSnap(mRecyclerView.layoutManager!!,
-                            targetView)
-                    val dx = snapDistances!![0]
-                    val dy = snapDistances[1]
-                    val time = calculateTimeForDeceleration(Math.max(Math.abs(dx), Math.abs(dy)))
-                    if (time > 0) {
-                        action.update(dx, dy, time, mDecelerateInterpolator)
-                    }
-                }
-
-                override fun calculateSpeedPerPixel(displayMetrics: DisplayMetrics): Float {
-                    return MILLISECONDS_PER_INCH / displayMetrics.densityDpi
-                }
-            }
+        if (layoutManager !is LoopingLayoutManager) {
+            return null  // TODO: Log!
         }
+
+        val smoothScroller = layoutManager.LoopingSmoothScroller(mRecyclerView.context)
+        smoothScroller.layoutManager = layoutManager
+        return smoothScroller
     }
 
     companion object {
         private const val TAG = "SnapHelper"
     }
 }
+
