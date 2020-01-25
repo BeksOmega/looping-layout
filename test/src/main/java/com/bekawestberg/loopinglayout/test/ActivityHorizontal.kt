@@ -21,17 +21,19 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.bekawestberg.loopinglayout.library.LoopingLayoutManager
 import com.bekawestberg.loopinglayout.library.LoopingSnapHelper
+import com.bekawestberg.loopinglayout.library.TestSnapHelper
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class ActivityHorizontal : AppCompatActivity() {
     private lateinit var mRecyclerView: RecyclerView
     private var mAdapter: AdapterGeneric = AdapterGeneric(
-            Array(7) { i -> i.toString()},
-            Array(7) { i -> 250})
+            Array(100) { i -> i.toString()},
+            Array(100) { i -> 750})
     private var mLayoutManager =
             LoopingLayoutManager(this, RecyclerView.HORIZONTAL, false)
 

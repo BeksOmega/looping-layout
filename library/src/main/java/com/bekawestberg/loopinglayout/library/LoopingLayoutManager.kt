@@ -23,15 +23,16 @@ import android.graphics.Rect
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.AttributeSet
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.Interpolator
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.OrientationHelper
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.LayoutManager
-import androidx.recyclerview.widget.RecyclerView.LayoutParams
+import androidx.recyclerview.widget.RecyclerView.*
 import kotlin.math.abs
 import kotlin.math.ceil
 import kotlin.math.sign
@@ -50,7 +51,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
      * the visible space. This is used during smooth scrolling, so that the target view can be found
      * before it becomes visible (helps with smooth deceleration).
      */
-    private var extraLayoutSpace = 0
+    private var extraLayoutSpace = 10000
 
     /**
      * @return A Rect populated with the positions of the static edges of the layout. I.e. right
@@ -165,7 +166,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
     }
 
     override fun generateDefaultLayoutParams(): LayoutParams {
-        return LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT,
+        return LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 
@@ -1018,14 +1019,16 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
      *    2) The layout manager must be given the state.itemCount to properly calculate
      *       a scroll vector.
      */
-    inner class LoopingSmoothScroller(val context: Context) : LinearSmoothScroller(context) {
+    open class LoopingSmoothScroller(val context: Context) : LinearSmoothScroller(context) {
 
         private var state: RecyclerView.State? = null
 
         private val count: Int
-            get() = state?.itemCount ?: itemCount
+            get() = state?.itemCount ?: layoutManager.itemCount
 
         lateinit var layoutManager: LoopingLayoutManager
+
+        var millisPerInch = 25f
 
         constructor(context: Context, state: RecyclerView.State) : this(context ) {
             this.state = state
@@ -1080,7 +1083,9 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             Log.v(TAG, "start")
             // Based on the Material Design Guidelines, 500 ms should be plenty of time to decelerate.
             val rate = calculateSpeedPerPixel(context.resources.displayMetrics)  // MS/Pixel
-            val time = 500  // MS.
+            val time = 10000  // MS.
+            val dist = (rate * time).toInt()
+            Log.v(TAG, "dist: dist")
             (layoutManager as LoopingLayoutManager).extraLayoutSpace = (rate * time).toInt()
         }
 
@@ -1112,31 +1117,8 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             }
         }
 
-        private val TARGET_SEEK_SCROLL_DISTANCE_PX = 10000
-        private val TARGET_SEEK_EXTRA_SCROLL_RATIO = 1.2f
-
-        override fun updateActionForInterimTarget(action: RecyclerView.SmoothScroller.Action) {
-            Log.v(TAG, "update")
-            // find an interim target position
-            val scrollVector = computeScrollVectorForPosition(targetPosition)
-            if (scrollVector == null || scrollVector.x == 0f && scrollVector.y == 0f) {
-                val target = targetPosition
-                action.jumpTo(target)
-                stop()
-                return
-            }
-            normalize(scrollVector)
-            mTargetVector = scrollVector
-
-            mInterimTargetDx = (TARGET_SEEK_SCROLL_DISTANCE_PX * scrollVector.x).toInt()
-            mInterimTargetDy = (TARGET_SEEK_SCROLL_DISTANCE_PX * scrollVector.y).toInt()
-            val time = calculateTimeForScrolling(TARGET_SEEK_SCROLL_DISTANCE_PX)
-            // To avoid UI hiccups, trigger a smooth scroll to a distance little further than the
-            // interim target. Since we track the distance travelled in onSeekTargetStep callback, it
-            // won't actually scroll more than what we need.
-            action.update((mInterimTargetDx * TARGET_SEEK_EXTRA_SCROLL_RATIO).toInt(),
-                    (mInterimTargetDy * TARGET_SEEK_EXTRA_SCROLL_RATIO).toInt(),
-                    (time * TARGET_SEEK_EXTRA_SCROLL_RATIO).toInt(), mDecelerateInterpolator)
+        override fun calculateSpeedPerPixel(displayMetrics: DisplayMetrics): Float {
+            return millisPerInch / displayMetrics.densityDpi
         }
     }
 

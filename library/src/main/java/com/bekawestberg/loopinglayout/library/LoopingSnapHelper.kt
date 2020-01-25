@@ -154,8 +154,20 @@ class LoopingSnapHelper : LinearSnapHelper() {
             return null  // TODO: Log!
         }
 
-        val smoothScroller = layoutManager.LoopingSmoothScroller(mRecyclerView.context)
+        val smoothScroller = object : LoopingLayoutManager.LoopingSmoothScroller(mRecyclerView.context) {
+            override fun onTargetFound(targetView: View, state: RecyclerView.State, action: Action) {
+                val snapDistances = calculateDistanceToFinalSnap(mRecyclerView.layoutManager!!,
+                        targetView)
+                val dx = snapDistances!![0]
+                val dy = snapDistances[1]
+                val time = calculateTimeForDeceleration(Math.max(Math.abs(dx), Math.abs(dy)))
+                if (time > 0) {
+                    action.update(dx, dy, time, mDecelerateInterpolator)
+                }
+            }
+        }
         smoothScroller.layoutManager = layoutManager
+        smoothScroller.millisPerInch = 75f
         return smoothScroller
     }
 
