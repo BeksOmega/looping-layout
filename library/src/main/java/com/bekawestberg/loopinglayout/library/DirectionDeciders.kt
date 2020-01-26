@@ -48,6 +48,32 @@ fun addViewsAtOptAnchorEdge(
 
 /**
  * @return A movement direction that should be used to "scroll" to the given adapter index.
+ *         This function always returns the direction associated with creating views at the top/left
+ *         edge of the layout.
+ */
+fun addViewsAtTopLeftEdge(
+        adapterIndex: Int,
+        layoutManager: LoopingLayoutManager,
+        itemCount: Int
+): Int {
+    return LoopingLayoutManager.TOWARDS_TOP_LEFT
+}
+
+/**
+ * @return A movement direction that should be used to "scroll" to the given adapter index.
+ *         This function always returns the direction associated with creating views at the
+ *         bottom/right edge of the layout.
+ */
+fun addViewsAtBottomRightEdge(
+        adapterIndex: Int,
+        layoutManager: LoopingLayoutManager,
+        itemCount: Int
+): Int {
+    return LoopingLayoutManager.TOWARDS_BOTTOM_RIGHT
+}
+
+/**
+ * @return A movement direction that should be used to "scroll" to the given adapter index.
  *         This function estimates which direction puts the view on screen with the least amount
  *         of scrolling. It is an estimation because the function assumes all views are the same
  *         size. If some views are larger or smaller than others, this may not return the correct
