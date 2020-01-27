@@ -1071,6 +1071,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             loopedTargetIndex = 0.loop(unloopedTargetIndex, count)
             viewsToPass = calculateViewsToPass()
             layoutManager.extraLayoutSpace = calculateExtraLayoutSpace()
+            Log.v(TAG, "unlooped: $unloopedTargetIndex looped: $loopedTargetIndex toPass: $viewsToPass")
         }
 
         /**
@@ -1082,9 +1083,14 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         }
 
         override fun onChildAttachedToWindow(child: View) {
-            if (getChildPosition(child) == targetPosition) {
+            if (getChildPosition(child) == loopedTargetIndex) {
                 viewsToPass--
-                if (viewsToPass == -1) {
+
+                val childPos = getChildPosition(child)
+                val targetPos = getTargetPosition()
+                Log.v(TAG, "child matches! childPos: $childPos looped: $loopedTargetIndex targetPos: $targetPos views: $viewsToPass")
+
+                if (viewsToPass < 0) {
                     super.onChildAttachedToWindow(child)
                 }
             }

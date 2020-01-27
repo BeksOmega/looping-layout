@@ -74,6 +74,12 @@ class LoopingSnapHelper : LinearSnapHelper() {
         return currentPosition + deltaJump
     }
 
+    override fun createScroller(layoutManager: RecyclerView.LayoutManager): RecyclerView.SmoothScroller {
+        val smoothScroller = LoopingLayoutManager.LoopingSmoothScroller(recyclerView.context)
+        smoothScroller.millisPerInch = 75f
+        return smoothScroller
+    }
+
     // TODO: This is an exact replicate of a function that is private in the superclass. Put in
     //   a request to AOSP to make it public/protected.
     /**
