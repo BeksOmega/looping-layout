@@ -45,9 +45,7 @@ class ActivityHorizontal : AppCompatActivity() {
 
         val button = findViewById<FloatingActionButton>(R.id.fab)
         button.setOnClickListener {
-            mRecyclerView.scrollBy(250, 0)
-            /*mAdapter.updateData(arrayOf("0", "1", "2"), Array(16) { i -> 250 })
-            mAdapter.notifyDataSetChanged()*/
+            mRecyclerView.smoothScrollToPosition(10)
         }
     }
 }

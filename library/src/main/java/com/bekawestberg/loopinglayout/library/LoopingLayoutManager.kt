@@ -23,6 +23,7 @@ import android.graphics.Rect
 import android.os.Parcel
 import android.os.Parcelable
 import android.util.AttributeSet
+import android.util.DisplayMetrics
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
@@ -33,6 +34,8 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.LayoutManager
 import androidx.recyclerview.widget.RecyclerView.LayoutParams
 import kotlin.math.abs
+import kotlin.math.floor
+import kotlin.math.sign
 
 class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVectorProvider {
 
@@ -1014,10 +1017,50 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
      *    2) The layout manager must be given the state.itemCount to properly calculate
      *       a scroll vector.
      */
-    private inner class LoopingSmoothScroller(
-            val context: Context,
-            val state: RecyclerView.State
-    ) : LinearSmoothScroller(context) {
+    class LoopingSmoothScroller(val context: Context) : LinearSmoothScroller(context) {
+
+        /**
+         * Describes the number of matching views (i.e. views associated with the target position)
+         * we want to pass over before snapping to the next matching view.
+         */
+        private var viewsToPass = 0
+
+        /**
+         * The adapter index we want to snap to. Looped to be within the bounds of the adapter.
+         */
+        private var loopedTargetIndex: Int = 0
+
+        /**
+         * The un-looped index we want to snap to. Used to figure out how many times we want to
+         * pass over a view
+         */
+        private var unloopedTargetIndex: Int = 0
+
+        /**
+         * The state of the recycler view this scroller's LayoutManager is attached to.
+         */
+        private var state: RecyclerView.State? = null
+
+        private val count: Int
+            get() = state?.itemCount ?: layoutManager.itemCount
+
+        val layoutManager: LoopingLayoutManager
+            get() = super.getLayoutManager() as LoopingLayoutManager
+
+        /**
+         * The number of milliseconds it takes to scroll through an inch of space.
+         */
+        var millisPerInch = 25f
+
+
+        constructor(context: Context, state: RecyclerView.State) : this(context) {
+            this.state = state
+        }
+
+        override fun setTargetPosition(targetPosition: Int) {
+            unloopedTargetIndex = targetPosition;
+            super.setTargetPosition(targetPosition)
+        }
 
         /**
          * Tells the LoopingLayoutManager to start laying out extra (i.e. not visible) views. This
@@ -1025,10 +1068,9 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
          * deceleration.
          */
         override fun onStart() {
-            // Based on the Material Design Guidelines, 500 ms should be plenty of time to decelerate.
-            val rate = calculateSpeedPerPixel(context.resources.displayMetrics)  // MS/Pixel
-            val time = 500  // MS.
-            (layoutManager as LoopingLayoutManager).extraLayoutSpace = (rate * time).toInt()
+            loopedTargetIndex = 0.loop(unloopedTargetIndex, count)
+            viewsToPass = calculateViewsToPass()
+            layoutManager.extraLayoutSpace = calculateExtraLayoutSpace()
         }
 
         /**
@@ -1036,16 +1078,70 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
          * to lay out views the user can't see.
          */
         override fun onStop() {
-            (layoutManager as LoopingLayoutManager).extraLayoutSpace = 0
+            layoutManager.extraLayoutSpace = 0
         }
 
-        override fun computeScrollVectorForPosition(targetPosition: Int): PointF? {
-            val layoutManager = layoutManager  // Enables smart cast.
-            if (layoutManager is LoopingLayoutManager) {
-                return layoutManager.computeScrollVectorForPosition(targetPosition, state.itemCount)
+        override fun onChildAttachedToWindow(child: View) {
+            if (getChildPosition(child) == targetPosition) {
+                viewsToPass--
+                if (viewsToPass == -1) {
+                    super.onChildAttachedToWindow(child)
+                }
             }
-            Log.w(TAG, "A LoopingSmoothScroller should only be attached to a LoopingLayoutManager.")
-            return null
+        }
+
+        override fun calculateSpeedPerPixel(displayMetrics: DisplayMetrics): Float {
+            return millisPerInch / displayMetrics.densityDpi
+        }
+
+        /**
+         * Calculates the number of views with an index matching the loopedTargetIndex we need to pass.
+         */
+        private fun calculateViewsToPass(): Int {
+            var edgeViewIndex = getEdgeViewIndexInDirectionOfFling()
+            if (edgeViewIndex == 0) edgeViewIndex = count
+            // We want to know how many newly created views with an index equal to the loopedTarget
+            // we need to pass before we snap to one.
+            // unloopedTargetIndex - edgeViewIndex : Gets us the number of views that need to be created.
+            // divided by count : How many times a matching view will be created.
+            // abs and floor : Gets us the number of views we need to pass. The view represented
+            //     by the remainder is the one we want to snap to.
+            return floor(abs((unloopedTargetIndex - edgeViewIndex) / count.toFloat())).toInt()
+        }
+
+        /**
+         * Gets the index of the view that is currently at the edge in the direction the layout
+         * is being flung.
+         * For example, if the user is trying to see new views at the right edge of the layout
+         * this will return the index of the view at the right edge of the layout.
+         */
+        private fun getEdgeViewIndexInDirectionOfFling(): Int {
+            val vector = computeScrollVectorForPosition(loopedTargetIndex)
+            val direction = if (layoutManager.canScrollVertically()) {
+                sign(vector.y).toInt()
+            } else {
+                sign(vector.x).toInt()
+            }
+            return layoutManager.getInitialIndex(direction)
+        }
+
+        /**
+         * Calculates the amount of extra space that needs to be layed out to give us enough time
+         * to decelerate smoothly.
+         */
+        private fun calculateExtraLayoutSpace(): Int {
+            val rate = calculateSpeedPerPixel(context.resources.displayMetrics)
+            return (rate * TIME_TO_DECELERATE).toInt()
+        }
+
+        override fun computeScrollVectorForPosition(targetPosition: Int): PointF {
+            return layoutManager.computeScrollVectorForPosition(targetPosition, count)
+        }
+
+        companion object {
+
+            // Based on the MDG, 500ms should be plenty of time to decelerate.
+            const val TIME_TO_DECELERATE = 500;
         }
     }
 
