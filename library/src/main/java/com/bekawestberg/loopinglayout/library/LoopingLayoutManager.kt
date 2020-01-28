@@ -1044,8 +1044,18 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         private val count: Int
             get() = state?.itemCount ?: layoutManager.itemCount
 
-        val layoutManager: LoopingLayoutManager
-            get() = super.getLayoutManager() as LoopingLayoutManager
+
+        private var mLoopingLayoutManager: LoopingLayoutManager? = null
+        var layoutManager: LoopingLayoutManager
+            get() {
+                return mLoopingLayoutManager ?: super.getLayoutManager() as LoopingLayoutManager
+            }
+            // TODO: Make issue with AOSP. This would be unnecessary if:
+            //   A) mTargetPosition were protected or
+            //   B) OnAnimation checked getChildPosition(mTargetView) == getTargetPosition
+            set(value) {
+                mLoopingLayoutManager = value
+            }
 
         /**
          * The number of milliseconds it takes to scroll through an inch of space.
@@ -1057,8 +1067,21 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             this.state = state
         }
 
+        override fun onTargetFound(targetView: View, state: RecyclerView.State, action: Action) {
+            Log.v(TAG, "target found", Exception())
+            super.onTargetFound(targetView, state, action)
+        }
+
         override fun setTargetPosition(targetPosition: Int) {
-            unloopedTargetIndex = targetPosition;
+            unloopedTargetIndex = targetPosition
+            // TODO: Make issue with AOSP. This would be unnecessary if:
+            //   A) mTargetPosition were protected or
+            //   B) OnAnimation checked getChildPosition(mTargetView) == getTargetPosition
+            if (mLoopingLayoutManager != null) {
+                loopedTargetIndex = 0.loop(unloopedTargetIndex, count)
+                super.setTargetPosition(loopedTargetIndex)
+                return;
+            }
             super.setTargetPosition(targetPosition)
         }
 
@@ -1068,7 +1091,6 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
          * deceleration.
          */
         override fun onStart() {
-            loopedTargetIndex = 0.loop(unloopedTargetIndex, count)
             viewsToPass = calculateViewsToPass()
             layoutManager.extraLayoutSpace = calculateExtraLayoutSpace()
             Log.v(TAG, "unlooped: $unloopedTargetIndex looped: $loopedTargetIndex toPass: $viewsToPass")
@@ -1147,7 +1169,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         companion object {
 
             // Based on the MDG, 500ms should be plenty of time to decelerate.
-            const val TIME_TO_DECELERATE = 500;
+            const val TIME_TO_DECELERATE = 500
         }
     }
 

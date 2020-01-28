@@ -1,5 +1,6 @@
 package com.bekawestberg.loopinglayout.library
 
+import android.util.Log
 import android.view.View
 import androidx.recyclerview.widget.LinearSnapHelper
 import androidx.recyclerview.widget.OrientationHelper
@@ -76,6 +77,7 @@ class LoopingSnapHelper : LinearSnapHelper() {
 
     override fun createScroller(layoutManager: RecyclerView.LayoutManager): RecyclerView.SmoothScroller {
         val smoothScroller = LoopingLayoutManager.LoopingSmoothScroller(recyclerView.context)
+        smoothScroller.layoutManager = layoutManager as LoopingLayoutManager
         smoothScroller.millisPerInch = 75f
         return smoothScroller
     }
@@ -101,6 +103,7 @@ class LoopingSnapHelper : LinearSnapHelper() {
     ): Int {
         val distances = calculateScrollDistance(velocityX, velocityY)
         val distancePerChild = computeDistancePerChild(layoutManager, helper)
+        Log.v("LoopingLayoutManager", "distance: $distances distPer: $distancePerChild")
         if (distancePerChild <= 0) {
             return 0
         }
@@ -127,41 +130,21 @@ class LoopingSnapHelper : LinearSnapHelper() {
             layoutManager: RecyclerView.LayoutManager,
             helper: OrientationHelper
     ): Float {
-        var minPosView: View? = null
-        var maxPosView: View? = null
-        var minPos = Integer.MAX_VALUE
-        var maxPos = Integer.MIN_VALUE
         val childCount = layoutManager.childCount
         if (childCount == 0) {
             return INVALID_DISTANCE
         }
+        val view1: View = layoutManager.getChildAt(0)!!
+        val view2: View = layoutManager.getChildAt(childCount - 1)!!
 
-        for (i in 0 until childCount) {
-            val child = layoutManager.getChildAt(i)
-            val pos = layoutManager.getPosition(child!!)
-            if (pos == RecyclerView.NO_POSITION) {
-                continue
-            }
-            if (pos < minPos) {
-                minPos = pos
-                minPosView = child
-            }
-            if (pos > maxPos) {
-                maxPos = pos
-                maxPosView = child
-            }
-        }
-        if (minPosView == null || maxPosView == null) {
-            return INVALID_DISTANCE
-        }
-        val start = Math.min(helper.getDecoratedStart(minPosView),
-                helper.getDecoratedStart(maxPosView))
-        val end = Math.max(helper.getDecoratedEnd(minPosView),
-                helper.getDecoratedEnd(maxPosView))
+        val start = helper.getDecoratedStart(view1)
+        val end = helper.getDecoratedEnd(view2)
         val distance = end - start
         return if (distance == 0) {
             INVALID_DISTANCE
-        } else 1f * distance / (maxPos - minPos + 1)
+        } else {
+            distance.toFloat() / childCount
+        }
     }
 
     // TODO: This is an exact replicate of a function that is private in the superclass. Put in
