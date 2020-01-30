@@ -20,6 +20,7 @@ package com.bekawestberg.loopinglayout.test
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.SnapHelper
 import com.bekawestberg.loopinglayout.library.LoopingLayoutManager
 import com.bekawestberg.loopinglayout.library.LoopingSnapHelper
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -31,7 +32,7 @@ class ActivityVertical : AppCompatActivity() {
             Array(16) { i -> 250})
     private var mLayoutManager: RecyclerView.LayoutManager =
             LoopingLayoutManager(this, RecyclerView.VERTICAL, false)
-    private var snapHelper = LoopingSnapHelper();
+    private var snapHelper: SnapHelper? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
