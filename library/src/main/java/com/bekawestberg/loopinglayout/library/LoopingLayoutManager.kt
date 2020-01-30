@@ -1119,6 +1119,12 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             this.scrollStrategy = scrollStrategy
 
             if (layoutManager != null && state != null) initialize(layoutManager, state)
+
+            if (!hasBeenInitialized
+                    && anchorIndex != RecyclerView.NO_POSITION
+                    && scrollStrategy == null) {
+                hasBeenInitialized = true
+            }
         }
 
         /**
