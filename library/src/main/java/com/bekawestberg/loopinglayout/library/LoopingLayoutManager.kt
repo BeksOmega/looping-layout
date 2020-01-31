@@ -537,8 +537,8 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             }
         }
 
-        // Removing the views after collecting them and putting them in order from greatest -> makes sure we
-        // don't get null errors. See #19
+        // Removing the views after collecting them and putting them in order from greatest -> least
+        // makes sure we don't get null errors. See #19.
         viewsToRemove.sortedDescending().forEach { i ->
             removeAndRecycleViewAt(i, recycler)
         }
