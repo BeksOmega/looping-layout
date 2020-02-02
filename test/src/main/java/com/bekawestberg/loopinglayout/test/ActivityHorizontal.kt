@@ -19,6 +19,8 @@ package com.bekawestberg.loopinglayout.test
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SnapHelper
 import com.bekawestberg.loopinglayout.library.LoopingLayoutManager
@@ -31,7 +33,7 @@ class ActivityHorizontal : AppCompatActivity() {
             Array(16) { i -> i.toString()},
             Array(16) { i -> 250})
     private var mLayoutManager =
-            LoopingLayoutManager(this, RecyclerView.HORIZONTAL, true)
+           LinearLayoutManager(this, RecyclerView.HORIZONTAL, true)
     private var snapHelper: SnapHelper? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
