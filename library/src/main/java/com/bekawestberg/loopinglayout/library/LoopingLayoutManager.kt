@@ -26,6 +26,7 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.view.accessibility.AccessibilityEvent
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.OrientationHelper
@@ -689,6 +690,82 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         }
     }
 
+    override fun computeVerticalScrollOffset(state: RecyclerView.State): Int {
+        return computeScrollOffset()
+    }
+
+    override fun computeVerticalScrollRange(state: RecyclerView.State): Int {
+        return computeScrollRange()
+    }
+
+    override fun computeVerticalScrollExtent(state: RecyclerView.State): Int {
+        return computeScrollExtent()
+    }
+
+    override fun computeHorizontalScrollOffset(state: RecyclerView.State): Int {
+        return computeScrollOffset()
+    }
+
+    override fun computeHorizontalScrollRange(state: RecyclerView.State): Int {
+        return computeScrollRange()
+    }
+
+    override fun computeHorizontalScrollExtent(state: RecyclerView.State): Int {
+        return computeScrollExtent()
+    }
+
+    /**
+     * Computes the "offset" the view is from the top. This is documented as needed to support
+     * scrollbars (which the LoopingLayoutManager does not support), but it is also needed to
+     * support TalkBack accessibility gestures. This function returns a constant to ensure that
+     * the layout is always scrollable.
+     */
+    private fun computeScrollOffset(): Int {
+        if (childCount == 0) {
+            return 0
+        }
+        return SCROLL_OFFSET
+    }
+
+    /**
+     * Computes the "range" of scrolling the view supports. This is documented as needed to support
+     * scrollbars (which the LoopingLayoutManager does not support), but it is also needed to
+     * support TalkBack accessibility gestures. This function returns a constant to ensure that
+     * the layout is always scrollable.
+     */
+    private fun computeScrollRange(): Int {
+        if (childCount == 0) {
+            return 0
+        }
+        return SCROLL_RANGE
+    }
+
+    /**
+     * Computes the "extent" of the view. This is documented as needed to support scrollbars (which
+     * the LoopingLayoutManager does not support), but it is also needed to support TalkBack
+     * accessibility gestures. This function returns a constant to ensure that the layout is always
+     * scrollable.
+     */
+    private fun computeScrollExtent(): Int {
+        return 0
+    }
+
+    /**
+     * Adds details to the accessibility event about the range of views that are being shown,
+     * so that it can be told to the user.
+     */
+    override fun onInitializeAccessibilityEvent(
+        recycler: RecyclerView.Recycler,
+        state: RecyclerView.State,
+        event: AccessibilityEvent
+    ) {
+        super.onInitializeAccessibilityEvent(recycler, state, event)
+        if (childCount > 0) {
+            event.fromIndex = topLeftIndex
+            event.toIndex = bottomRightIndex
+        }
+    }
+
     /**
      * Calculates the vector that points to where the target position can be found.
      *
@@ -1222,6 +1299,18 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
          * indices.
          */
         const val TOWARDS_HIGHER_INDICES = 1
+
+        /**
+         * A constant returned by the [.computeScrollOffset] function so that accessibility knows
+         * the layout is always scrollable.
+         *
+         */
+        const val SCROLL_OFFSET = 100
+        /**
+         * A constant returned by the [.computeScrollRange] function so that acessibility knows
+         * the layout is always scrollable.
+         */
+        const val SCROLL_RANGE = 200
     }
 
 }
