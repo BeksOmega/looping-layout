@@ -513,7 +513,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         // The first visible item will bump us to zero.
         var distanceFromStart = -1
         var foundVisibleView = false
-        var foundHiddenView = false
+        val viewsToRemove = mutableListOf<Int>()
 
         // We want to loop through the views in the order opposite the direction of movement so that
         // we remove views that have become hidden because of scrolling.
@@ -526,19 +526,24 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         // Ignore hidden views at the start of the range.
         // Only recycle hidden views at the end of the range.
         for (i in range) {
-            val view = getChildAt(i) ?: break
+            val view = getChildAt(i)!!
             if (viewIsVisible(view)) {
                 if (!foundVisibleView) {
                     foundVisibleView = true
                 }
                 distanceFromStart++
             } else if (foundVisibleView){
-                foundHiddenView = true
-                removeAndRecycleViewAt(i, recycler)
+                viewsToRemove.add(i)
             }
         }
 
-        if (!foundHiddenView) {
+        // Removing the views after collecting them and putting them in order from greatest -> least
+        // makes sure we don't get null errors. See #19.
+        viewsToRemove.sortedDescending().forEach { i ->
+            removeAndRecycleViewAt(i, recycler)
+        }
+
+        if (viewsToRemove.count() == 0) {
             // If we didn't find anything that needed to be disposed, no indices need to be updated.
             return
         }
