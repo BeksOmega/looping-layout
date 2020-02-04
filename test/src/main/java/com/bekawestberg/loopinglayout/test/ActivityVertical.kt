@@ -19,6 +19,7 @@ package com.bekawestberg.loopinglayout.test
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.SnapHelper
@@ -30,8 +31,9 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 class ActivityVertical : AppCompatActivity() {
     private lateinit var mRecyclerView: RecyclerView
     private var mAdapter: AdapterGeneric = AdapterGeneric(
-            Array(16) { i -> i.toString()},
-            Array(16) { i -> 250})
+            //arrayOf("Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"),
+            Array(7) { i -> i.toString()},
+            Array(7) { i -> 250})
     private var mLayoutManager: RecyclerView.LayoutManager =
             LoopingLayoutManager(this, RecyclerView.VERTICAL, false)
     private var snapHelper: SnapHelper? = null
