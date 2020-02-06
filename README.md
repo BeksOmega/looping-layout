@@ -16,7 +16,7 @@ It lives at [https://github.com/BeksOmega/looping-layout].
 Add the dependency to your build.gradle file.
 ```groovy
 dependencies {
-    implementation 'com.github.beksomega:loopinglayout:0.2.0'
+    implementation 'com.github.beksomega:loopinglayout:0.3.0'
 }
 ```
 
@@ -86,18 +86,14 @@ that for more information about RecyclerViews.
 
 ## :sparkles: Features 
 
-Current:
- * Vertical and Horizontal Orientations.
- * LTR and RTL support.
- * ReverseLayout support for both orientations, as well as LTR, and RTL.
- * Public functions for finding items and positions.
- * Public functions for scrolling programmatically.
-    
-Future:
- * `notifyDataSetChanged` support.
- * Snap Helper support.
- * Drag and Drop support?
-
+ * Vertical and Horizontal Orientations
+ * LTR and RTL support
+ * ReverseLayout support for both orientations, as well as LTR, and RTL
+ * Public functions for finding items and positions
+ * Public functions for scrolling programmatically
+ * Snap Helper support
+ * Accessibility (TalkBack and Voice Access) support
+ 
 ## :page_with_curl: License 
 
 Looping Layout is licenced under the [Apache 2.0 License][apache].
