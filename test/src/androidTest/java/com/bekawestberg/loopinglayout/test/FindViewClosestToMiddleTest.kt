@@ -199,10 +199,11 @@ class FindViewClosestToMiddleTest {
     private fun calculateSizeOfOneItem(orientation: Int): Int {
         val activity = activityRule.activity
         val recycler = activity.findViewById<RecyclerView>(R.id.recycler) ?: return 0
+        val layoutManager: LoopingLayoutManager = recycler.layoutManager as LoopingLayoutManager;
         return if (orientation == RecyclerView.HORIZONTAL) {
-            recycler.width - (sizeOfZeroItem + visiblePortionOfSecondZeroItem)
+            layoutManager.layoutWidth - sizeOfZeroItem - visiblePortionOfSecondZeroItem
         } else {
-            recycler.height - (sizeOfZeroItem + visiblePortionOfSecondZeroItem)
+            layoutManager.layoutHeight - sizeOfZeroItem - visiblePortionOfSecondZeroItem
         }
     }
 }

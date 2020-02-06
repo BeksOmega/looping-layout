@@ -25,7 +25,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 class AdapterGeneric (
-        private val mDataset: Array<String>,
+        private var mDataset: Array<String>,
         private var mSizes: Array<Int>? = null
 ): RecyclerView.Adapter<AdapterGeneric.MyViewHolder>() {
 
@@ -64,6 +64,11 @@ class AdapterGeneric (
         v.layoutParams = params
 
         Log.v(TAG, "binding")
+    }
+
+    fun updateData(dataSet: Array<String>, sizes: Array<Int>?) {
+        mDataset = dataSet
+        mSizes = sizes
     }
 
     // Return the size of your data set (invoked by the layout manager)

@@ -20,10 +20,13 @@ package com.bekawestberg.loopinglayout.library
 import android.content.Context
 import android.graphics.PointF
 import android.graphics.Rect
+import android.os.Parcel
+import android.os.Parcelable
 import android.util.AttributeSet
 import android.util.Log
 import android.view.View
 import android.view.ViewGroup
+import android.view.accessibility.AccessibilityEvent
 import androidx.core.view.ViewCompat
 import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.OrientationHelper
@@ -33,16 +36,13 @@ import androidx.recyclerview.widget.RecyclerView.LayoutParams
 import kotlin.math.abs
 
 class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVectorProvider {
+
     /**
-     * When LayoutManager needs to scroll to a position, it sets this variable and requests a
-     * layout which will check this variable and re-layout accordingly.
+     * Describes the way the layout should be... laid out. Anchor index, anchor edge, and scroll
+     * offset. Used for triggering scrollTo, updating after an adapter change, and orientation
+     * changes.
      */
-    private var mPendingScrollPosition = RecyclerView.NO_POSITION
-    /**
-     * When the layout manager needs to scroll to a position (via scroll to position), it needs
-     * some method to decide which movement direction to scroll in. This variable stores that method.
-     */
-    private var mPendingScrollStrategy: (Int, LoopingLayoutManager, Int) -> Int = ::defaultDecider
+    private var layoutRequest = LayoutRequest(anchorIndex = 0)
 
     /**
      * The amount of extra (i.e. not visible) space to fill up with views after we have filled up
@@ -67,6 +67,19 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             }
             return layoutRect
         }
+
+    /**
+     * The width of the layout - not the recycler.
+     * AKA the width of the recycler, minus the padding on the left and right.
+     */
+    val layoutWidth: Int
+        get() = width - paddingLeft - paddingRight
+    /**
+     * The height of the layout - not the recycler.
+     * AKA the height of the recycler, minus the padding on the top and bottom.
+     */
+    val layoutHeight: Int
+        get() = height - paddingTop - paddingBottom
     
     /**
      * Describes the adapter index of the view in the top/left -most position.
@@ -155,82 +168,58 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
                 ViewGroup.LayoutParams.WRAP_CONTENT)
     }
 
-    override fun onLayoutChildren(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
-        if (mPendingScrollPosition != RecyclerView.NO_POSITION) {
-            layoutToPosition(recycler, state)
-            return
-        }
-        layoutAnew(recycler, state)
+    override fun onSaveInstanceState(): Parcelable? {
+        // All of this information is based on keeping the item currently at the anchor edge
+        // at the anchor edge.
+        val direction = getMovementDirectionFromAdapterDirection(TOWARDS_LOWER_INDICES)
+        return LayoutRequest(
+                anchorIndex = getInitialIndex(direction),
+                scrollOffset = getInitialItem(direction).hiddenSize)
     }
 
-    /**
-     * Lays out the views by scrapping the current ones (if any exist) and starting from scratch.
-     */
-    private fun layoutAnew(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
+    override fun onRestoreInstanceState(state: Parcelable?) {
+        if (state is LayoutRequest) {
+            layoutRequest = state
+        }
+    }
+
+    override fun onLayoutChildren(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
+        layoutRequest.initialize(this, state);
+
         detachAndScrapAttachedViews(recycler)
         var layoutRect = nonScrollingEdges
 
-        val movementDir = getMovementDirectionFromAdapterDirection(TOWARDS_HIGHER_INDICES)
+        // A) We want to layout the item at the adapter index first, so that we can set the scroll offset.
+        // B) We want the item to be laid out /at/ the edge associated with the adapter direction.
+        // This means after it gets laid out we need to move /away/ from that edge.
+        // Hence the direction is inverted.
+        val movementDir = getMovementDirectionFromAdapterDirection(-layoutRequest.adapterDirection)
         var prevItem: ListItem? = null
-        val size = if (orientation == HORIZONTAL) width else height
+        val size = if (orientation == HORIZONTAL) layoutWidth else layoutHeight
         var sizeFilled = 0
-        var index = 0
+        var index = layoutRequest.anchorIndex
         while (sizeFilled < size) {
             val view = createViewForIndex(index, movementDir, recycler)
             val item = getItemForView(movementDir, view)
             layoutRect = prevItem?.getPositionOfItemFollowingSelf(item, layoutRect) ?:
-                    item.getPositionOfSelfAsFirst(layoutRect)
+                    item.getPositionOfSelfAsFirst(layoutRect, layoutRequest.scrollOffset)
             layoutDecorated(view, layoutRect.left, layoutRect.top,
                     layoutRect.right, layoutRect.bottom)
 
-            index = index.loopedIncrement(state.itemCount)
+            index = stepIndex(index, movementDir, state, false)
             sizeFilled += item.size
             prevItem = item
         }
 
         if (movementDir == TOWARDS_TOP_LEFT) {
-            bottomRightIndex = 0
-            topLeftIndex = index.loopedDecrement(state.itemCount)
+            bottomRightIndex = layoutRequest.anchorIndex
+            topLeftIndex = stepIndex(index, -movementDir, state, false)
         } else {
-            topLeftIndex = 0
-            bottomRightIndex = index.loopedDecrement(state.itemCount)
-        }
-    }
-
-    /**
-     * Lays out items until it reaches the target index ([.mPendingScrollPosition]).
-     *
-     * The position new items are added in is determined by the [.mPendingScrollStrategy].
-     *
-     * @see [.scrollToPosition]
-     */
-    private fun layoutToPosition(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
-        if (mPendingScrollPosition < 0 || mPendingScrollPosition >= state.itemCount) {
-            return;
+            topLeftIndex = layoutRequest.anchorIndex
+            bottomRightIndex = stepIndex(index, -movementDir, state, false)
         }
 
-        var layoutRect = nonScrollingEdges
-
-        val movementDir = mPendingScrollStrategy(mPendingScrollPosition, this, state.itemCount)
-        var index = getInitialIndex(movementDir)
-        var selectedItem = getInitialItem(movementDir)
-
-        val initialHiddenSize = selectedItem.hiddenSize
-        offsetChildren(initialHiddenSize * -movementDir)
-
-        while (index != mPendingScrollPosition) {
-            index = stepIndex(index, movementDir, state)
-            val newView = createViewForIndex(index, movementDir, recycler)
-            val newItem = getItemForView(movementDir, newView)
-            layoutRect = selectedItem.getPositionOfItemFollowingSelf(newItem, layoutRect)
-            layoutDecorated(newView, layoutRect.left, layoutRect.top,
-                    layoutRect.right, layoutRect.bottom)
-            selectedItem = newItem
-            val hiddenSize = selectedItem.hiddenSize
-            offsetChildren(hiddenSize * -movementDir)
-        }
-        mPendingScrollPosition = RecyclerView.NO_POSITION
-        recycleViews(movementDir, recycler, state)
+        layoutRequest.finishProcessing()
     }
 
     override fun canScrollVertically(): Boolean {
@@ -487,9 +476,9 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
 
         return when {
             isVertical && isTowardsTopLeft -> LeadingBottomListItem(view)
-            isVertical && isTowardsBottomRight -> LeadingTopListItem(view, height - paddingBottom)
+            isVertical && isTowardsBottomRight -> LeadingTopListItem(view)
             isHorizontal && isTowardsTopLeft -> LeadingRightListItem(view)
-            isHorizontal && isTowardsBottomRight -> LeadingLeftListItem(view, width - paddingRight)
+            isHorizontal && isTowardsBottomRight -> LeadingLeftListItem(view)
             else -> throw IllegalStateException("Invalid movement state.")
         }
     }
@@ -525,7 +514,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         // The first visible item will bump us to zero.
         var distanceFromStart = -1
         var foundVisibleView = false
-        var foundHiddenView = false
+        val viewsToRemove = mutableListOf<Int>()
 
         // We want to loop through the views in the order opposite the direction of movement so that
         // we remove views that have become hidden because of scrolling.
@@ -538,19 +527,24 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         // Ignore hidden views at the start of the range.
         // Only recycle hidden views at the end of the range.
         for (i in range) {
-            val view = getChildAt(i) ?: break
+            val view = getChildAt(i)!!
             if (viewIsVisible(view)) {
                 if (!foundVisibleView) {
                     foundVisibleView = true
                 }
                 distanceFromStart++
             } else if (foundVisibleView){
-                foundHiddenView = true
-                removeAndRecycleViewAt(i, recycler)
+                viewsToRemove.add(i)
             }
         }
 
-        if (!foundHiddenView) {
+        // Removing the views after collecting them and putting them in order from greatest -> least
+        // makes sure we don't get null errors. See #19.
+        viewsToRemove.sortedDescending().forEach { i ->
+            removeAndRecycleViewAt(i, recycler)
+        }
+
+        if (viewsToRemove.count() == 0) {
             // If we didn't find anything that needed to be disposed, no indices need to be updated.
             return
         }
@@ -565,7 +559,6 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         } else {
             topLeftIndex = initialIndex.loop(changeInPosition, count)
         }
-
     }
 
     /**
@@ -697,6 +690,82 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         }
     }
 
+    override fun computeVerticalScrollOffset(state: RecyclerView.State): Int {
+        return computeScrollOffset()
+    }
+
+    override fun computeVerticalScrollRange(state: RecyclerView.State): Int {
+        return computeScrollRange()
+    }
+
+    override fun computeVerticalScrollExtent(state: RecyclerView.State): Int {
+        return computeScrollExtent()
+    }
+
+    override fun computeHorizontalScrollOffset(state: RecyclerView.State): Int {
+        return computeScrollOffset()
+    }
+
+    override fun computeHorizontalScrollRange(state: RecyclerView.State): Int {
+        return computeScrollRange()
+    }
+
+    override fun computeHorizontalScrollExtent(state: RecyclerView.State): Int {
+        return computeScrollExtent()
+    }
+
+    /**
+     * Computes the "offset" the view is from the top. This is documented as needed to support
+     * scrollbars (which the LoopingLayoutManager does not support), but it is also needed to
+     * support TalkBack accessibility gestures. This function returns a constant to ensure that
+     * the layout is always scrollable.
+     */
+    private fun computeScrollOffset(): Int {
+        if (childCount == 0) {
+            return 0
+        }
+        return SCROLL_OFFSET
+    }
+
+    /**
+     * Computes the "range" of scrolling the view supports. This is documented as needed to support
+     * scrollbars (which the LoopingLayoutManager does not support), but it is also needed to
+     * support TalkBack accessibility gestures. This function returns a constant to ensure that
+     * the layout is always scrollable.
+     */
+    private fun computeScrollRange(): Int {
+        if (childCount == 0) {
+            return 0
+        }
+        return SCROLL_RANGE
+    }
+
+    /**
+     * Computes the "extent" of the view. This is documented as needed to support scrollbars (which
+     * the LoopingLayoutManager does not support), but it is also needed to support TalkBack
+     * accessibility gestures. This function returns a constant to ensure that the layout is always
+     * scrollable.
+     */
+    private fun computeScrollExtent(): Int {
+        return 0
+    }
+
+    /**
+     * Adds details to the accessibility event about the range of views that are being shown,
+     * so that it can be told to the user.
+     */
+    override fun onInitializeAccessibilityEvent(
+        recycler: RecyclerView.Recycler,
+        state: RecyclerView.State,
+        event: AccessibilityEvent
+    ) {
+        super.onInitializeAccessibilityEvent(recycler, state, event)
+        if (childCount > 0) {
+            event.fromIndex = topLeftIndex
+            event.toIndex = bottomRightIndex
+        }
+    }
+
     /**
      * Calculates the vector that points to where the target position can be found.
      *
@@ -818,8 +887,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             ) -> Int
     ) {
         if (viewWithIndexIsFullyVisible(adapterIndex)) return
-        mPendingScrollPosition = adapterIndex
-        mPendingScrollStrategy = strategy
+        layoutRequest = LayoutRequest(anchorIndex = adapterIndex, scrollStrategy = strategy)
         requestLayout()
     }
 
@@ -906,16 +974,15 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
          * vertical layout, top and bottom for a horizontal one).
          * @return A rect defining what the position of this item should be.
          */
-        abstract fun getPositionOfSelfAsFirst(rect: Rect): Rect
+        abstract fun getPositionOfSelfAsFirst(rect: Rect, hiddenAmount: Int): Rect
     }
 
     private inner class LeadingLeftListItem(
-        view: View,
-        private val mListRight: Int
+        view: View
     ) : ListItem(view) {
 
         override val hiddenSize: Int
-            get() = (getDecoratedRight(view) - mListRight).coerceAtLeast(0)
+            get() = (getDecoratedRight(view) - (width - paddingRight)).coerceAtLeast(0)
 
         override val leadingEdge: Int
             get() = getDecoratedLeft(view)
@@ -932,20 +999,19 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             return rect
         }
 
-        override fun getPositionOfSelfAsFirst(rect: Rect): Rect {
-            rect.left = paddingLeft
+        override fun getPositionOfSelfAsFirst(rect: Rect, hiddenAmount: Int): Rect {
+            rect.left = paddingLeft - hiddenAmount
             rect.right = rect.left + size
             return rect
         }
     }
 
     private inner class LeadingTopListItem(
-        view: View,
-        private val mListBottom: Int
+        view: View
     ) : ListItem(view) {
 
         override val hiddenSize: Int
-            get() = (getDecoratedBottom(view) - mListBottom).coerceAtLeast(0)
+            get() = (getDecoratedBottom(view) - (height - paddingBottom)).coerceAtLeast(0)
 
         override val leadingEdge: Int
             get() = getDecoratedTop(view)
@@ -963,8 +1029,8 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             return rect
         }
 
-        override fun getPositionOfSelfAsFirst(rect: Rect): Rect {
-            rect.top = paddingTop
+        override fun getPositionOfSelfAsFirst(rect: Rect, hiddenAmount: Int): Rect {
+            rect.top = paddingTop - hiddenAmount
             rect.bottom = rect.top + size
             return rect
         }
@@ -973,7 +1039,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
     private inner class LeadingRightListItem(view: View) : ListItem(view) {
 
         override val hiddenSize: Int
-            get() = (-getDecoratedLeft(view)).coerceAtLeast(0)
+            get() = (paddingLeft - getDecoratedLeft(view)).coerceAtLeast(0)
 
         override val leadingEdge: Int
             get() = getDecoratedRight(view)
@@ -985,13 +1051,13 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             get() = getDecoratedMeasuredWidth(view)
 
         override fun getPositionOfItemFollowingSelf(item: ListItem, rect: Rect): Rect {
-            rect.right = followingEdge
-            rect.left = rect.right - item.size
-            return rect
-        }
+                rect.right = followingEdge
+                rect.left = rect.right - item.size
+                return rect
+            }
 
-        override fun getPositionOfSelfAsFirst(rect: Rect): Rect {
-            rect.right = width - paddingRight
+        override fun getPositionOfSelfAsFirst(rect: Rect, hiddenAmount: Int): Rect {
+            rect.right = (width - paddingRight) + hiddenAmount
             rect.left = rect.right - size
             return rect
         }
@@ -1000,7 +1066,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
     private inner class LeadingBottomListItem(view: View) : ListItem(view) {
 
         override val hiddenSize: Int
-            get() = (-getDecoratedTop(view)).coerceAtLeast(0)
+            get() = (paddingTop - getDecoratedTop(view)).coerceAtLeast(0)
 
         override val leadingEdge: Int
             get() = getDecoratedBottom(view)
@@ -1017,8 +1083,8 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             return rect
         }
 
-        override fun getPositionOfSelfAsFirst(rect: Rect): Rect {
-            rect.bottom = height - paddingBottom
+        override fun getPositionOfSelfAsFirst(rect: Rect, hiddenAmount: Int): Rect {
+            rect.bottom = (height - paddingBottom) + hiddenAmount
             rect.top = rect.bottom - size
             return rect
         }
@@ -1065,6 +1131,141 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         }
     }
 
+    /**
+     * Holds the data necessary to re-layout the recycler.
+     */
+    private class LayoutRequest() : Parcelable {
+        /**
+         * The target adapter index we want to layout at the edge associated with the adapterDirection
+         */
+        var anchorIndex: Int = RecyclerView.NO_POSITION
+            get() {
+                if (!hasBeenInitialized) throw Exception("LayoutRequest has not been initialized.")
+                return field
+            }
+            private set
+
+        /**
+         * The amount (in pixels) of the view associated with the anchorIndex that should be hidden.
+         */
+        var scrollOffset: Int = 0
+            get() {
+                if (!hasBeenInitialized) throw Exception("LayoutRequest has not been initialized.")
+                return field
+            }
+            private set
+
+        /**
+         * Tells us which edge the view associated with the anchorIndex should be layed out at. If
+         * it is TOWARDS_LOWER_INDICES the view will be layed out at the edge where the view
+         * associated with the zero adapter index was originally laid out at. If it is
+         * TOWARDS_HIGHER_INDICES it will be the opposite edge.
+         */
+        var adapterDirection: Int = TOWARDS_LOWER_INDICES
+            get() {
+                if (!hasBeenInitialized) throw Exception("LayoutRequest has not been initialized.")
+                return field
+            }
+            private set
+
+        /**
+         * A directional decider used to pick a direction to "move" in if one was not provided
+         * explicitly.
+         *
+         * This value cannot be parceled.
+         */
+        private var scrollStrategy: ((Int, LoopingLayoutManager, Int) -> Int)? = null
+
+        /**
+         * Has the layout request been initialized to make sure all of its public vars are valid?
+         */
+        private var hasBeenInitialized = false
+
+        constructor(parcel: Parcel) : this() {
+            anchorIndex = parcel.readInt()
+            scrollOffset = parcel.readInt()
+            adapterDirection = parcel.readInt()
+        }
+
+        constructor(
+                anchorIndex: Int = RecyclerView.NO_POSITION,
+                scrollOffset: Int = 0,
+                adapterDirection: Int = TOWARDS_LOWER_INDICES,
+                scrollStrategy: ((Int, LoopingLayoutManager, Int) -> Int)? = null,
+                layoutManager: LoopingLayoutManager? = null,
+                state: RecyclerView.State? = null
+        ) : this() {
+            this.anchorIndex = anchorIndex
+            this.scrollOffset = scrollOffset
+            this.adapterDirection = adapterDirection
+            this.scrollStrategy = scrollStrategy
+
+            if (layoutManager != null && state != null) initialize(layoutManager, state)
+
+            if (!hasBeenInitialized
+                    && anchorIndex != RecyclerView.NO_POSITION
+                    && scrollStrategy == null) {
+                hasBeenInitialized = true
+            }
+        }
+
+        /**
+         * Makes sure that all of this LayoutRequests public variables are valid.
+         */
+        fun initialize(layoutManager: LoopingLayoutManager, state: RecyclerView.State) {
+            if (hasBeenInitialized) return
+            hasBeenInitialized = true
+            // If this is executing a scrollTo, the anchorIndex will be set, but the
+            // adapterDirection still needs to be decided.
+            adapterDirection = scrollStrategy?.invoke(anchorIndex, layoutManager, state.itemCount)?.let {
+                    layoutManager.getAdapterDirectionFromMovementDirection(it) }
+                    ?: adapterDirection
+            // If this is an adapter data update, the adapterDirection will be set but the
+            // anchorIndex and scrollOffset still need to be decided.
+            if (anchorIndex == RecyclerView.NO_POSITION) {
+                if (layoutManager.childCount == 0) {
+                    anchorIndex = 0
+                } else {
+                    val direction = layoutManager.getMovementDirectionFromAdapterDirection(adapterDirection);
+                    anchorIndex = layoutManager.getInitialIndex(direction)
+                    scrollOffset = layoutManager.getInitialItem(direction).hiddenSize
+                }
+            }
+        }
+
+        /**
+         * Resets this layout request to a default layout request so that the information can be
+         * re-initialized if onLayoutChildren gets called.
+         */
+        fun finishProcessing() {
+            anchorIndex = RecyclerView.NO_POSITION
+            scrollOffset = 0
+            adapterDirection = TOWARDS_LOWER_INDICES
+            scrollStrategy = null
+            hasBeenInitialized = false
+        }
+
+        override fun writeToParcel(parcel: Parcel, flags: Int) {
+            parcel.writeInt(anchorIndex)
+            parcel.writeInt(scrollOffset)
+            parcel.writeInt(adapterDirection)
+        }
+
+        override fun describeContents(): Int {
+            return 0
+        }
+
+        companion object CREATOR : Parcelable.Creator<LayoutRequest> {
+            override fun createFromParcel(parcel: Parcel): LayoutRequest {
+                return LayoutRequest(parcel)
+            }
+
+            override fun newArray(size: Int): Array<LayoutRequest?> {
+                return Array(size) { i -> LayoutRequest() }
+            }
+        }
+    }
+
     companion object {
 
         private const val TAG = "LoopingLayoutManager"
@@ -1098,6 +1299,18 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
          * indices.
          */
         const val TOWARDS_HIGHER_INDICES = 1
+
+        /**
+         * A constant returned by the [.computeScrollOffset] function so that accessibility knows
+         * the layout is always scrollable.
+         *
+         */
+        const val SCROLL_OFFSET = 100
+        /**
+         * A constant returned by the [.computeScrollRange] function so that acessibility knows
+         * the layout is always scrollable.
+         */
+        const val SCROLL_RANGE = 200
     }
 
 }

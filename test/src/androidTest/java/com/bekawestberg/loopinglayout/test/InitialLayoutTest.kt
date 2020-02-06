@@ -30,6 +30,10 @@ import androidx.test.rule.ActivityTestRule
 import com.bekawestberg.loopinglayout.test.androidTest.utils.setLayoutManager
 import com.bekawestberg.loopinglayout.test.androidTest.utils.setRtl
 import com.bekawestberg.loopinglayout.library.LoopingLayoutManager
+import com.bekawestberg.loopinglayout.test.androidTest.utils.ViewAssertions.isBottomAlignedWithPadding
+import com.bekawestberg.loopinglayout.test.androidTest.utils.ViewAssertions.isLeftAlignedWithPadding
+import com.bekawestberg.loopinglayout.test.androidTest.utils.ViewAssertions.isRightAlignedWithPadding
+import com.bekawestberg.loopinglayout.test.androidTest.utils.ViewAssertions.isTopAlignedWithPadding
 import org.hamcrest.Matcher
 import org.junit.Rule
 import org.junit.Test
@@ -120,18 +124,18 @@ class InitialLayoutTest {
     }
 
     private fun assertStartsLeft() {
-        assertPlacedCorrectly(::isLeftAlignedWith, ::isCompletelyLeftOf)
+        assertPlacedCorrectly(::isLeftAlignedWithPadding, ::isCompletelyLeftOf)
     }
 
     private fun assertStartsRight() {
-        assertPlacedCorrectly(::isRightAlignedWith, ::isCompletelyRightOf)
+        assertPlacedCorrectly(::isRightAlignedWithPadding, ::isCompletelyRightOf)
     }
 
     private fun assertStartsTop() {
-        assertPlacedCorrectly(::isTopAlignedWith, ::isCompletelyAbove)
+        assertPlacedCorrectly(::isTopAlignedWithPadding, ::isCompletelyAbove)
     }
 
     private fun assertStartsBottom() {
-        assertPlacedCorrectly(::isBottomAlignedWith, ::isCompletelyBelow)
+        assertPlacedCorrectly(::isBottomAlignedWithPadding, ::isCompletelyBelow)
     }
 }

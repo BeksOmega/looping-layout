@@ -20,17 +20,19 @@ package com.bekawestberg.loopinglayout.test
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.SnapHelper
 import com.bekawestberg.loopinglayout.library.LoopingLayoutManager
-import com.bekawestberg.loopinglayout.library.addViewsAtOptAnchorEdge
+import com.bekawestberg.loopinglayout.library.LoopingSnapHelper
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class ActivityHorizontal : AppCompatActivity() {
     private lateinit var mRecyclerView: RecyclerView
     private var mAdapter: AdapterGeneric = AdapterGeneric(
-            arrayOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15"),
+            Array(16) { i -> i.toString()},
             Array(16) { i -> 250})
     private var mLayoutManager =
-            LoopingLayoutManager(this, RecyclerView.HORIZONTAL, false)
+            LoopingLayoutManager(this, RecyclerView.HORIZONTAL, true)
+    private var snapHelper: SnapHelper? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,9 +44,15 @@ class ActivityHorizontal : AppCompatActivity() {
         mRecyclerView.setHasFixedSize(true)
         mRecyclerView.layoutManager = mLayoutManager
         mRecyclerView.adapter = mAdapter
-        mLayoutManager.smoothScrollDirectionDecider = ::addViewsAtOptAnchorEdge
+        /*mLayoutManager.smoothScrollDirectionDecider = ::addViewsAtOptAnchorEdge*/
+
+        snapHelper?.attachToRecyclerView(mRecyclerView)
 
         val button = findViewById<FloatingActionButton>(R.id.fab)
-        button.setOnClickListener { mRecyclerView.smoothScrollToPosition(7) }
+        button.setOnClickListener {
+            mRecyclerView.scrollBy(250, 0)
+            /*mAdapter.updateData(arrayOf("0", "1", "2"), Array(16) { i -> 250 })
+            mAdapter.notifyDataSetChanged()*/
+        }
     }
 }
