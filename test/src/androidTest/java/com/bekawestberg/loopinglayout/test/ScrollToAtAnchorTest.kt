@@ -1,8 +1,8 @@
 package com.bekawestberg.loopinglayout.test
 
+import android.widget.LinearLayout
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.assertion.PositionAssertions.*
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -380,21 +380,21 @@ class ScrollToAtAnchorTest {
 
     fun calculateNonTargetSizeWhenPartiallyVisible(orientation: Int): Int {
         val activity = activityRule.activity
-        val recycler = activity.findViewById<RecyclerView>(R.id.recycler) ?: return 0
+        val linearLayout = activity.findViewById<LinearLayout>(R.id.main_activity) ?: return 0
         return if (orientation == RecyclerView.HORIZONTAL) {
-            recycler.width - targetVisiblePortion
+            linearLayout.width - targetVisiblePortion
         } else {
-            recycler.height - targetVisiblePortion
+            linearLayout.height - targetVisiblePortion
         }
     }
 
     fun calculateNonTargetSizeWhenNotVisible(orientation: Int): Int {
         val activity = activityRule.activity
-        val recycler = activity.findViewById<RecyclerView>(R.id.recycler) ?: return 0
+        val linearLayout = activity.findViewById<LinearLayout>(R.id.main_activity) ?: return 0
         return if (orientation == RecyclerView.HORIZONTAL) {
-            recycler.width + nonTargetExtraPortion
+            linearLayout.width + nonTargetExtraPortion
         } else {
-            recycler.height + nonTargetExtraPortion
+            linearLayout.height + nonTargetExtraPortion
         }
     }
 }

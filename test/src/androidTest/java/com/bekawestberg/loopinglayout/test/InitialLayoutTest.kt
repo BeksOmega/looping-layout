@@ -27,13 +27,13 @@ import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.rule.ActivityTestRule
-import com.bekawestberg.loopinglayout.test.androidTest.utils.setLayoutManager
-import com.bekawestberg.loopinglayout.test.androidTest.utils.setRtl
 import com.bekawestberg.loopinglayout.library.LoopingLayoutManager
 import com.bekawestberg.loopinglayout.test.androidTest.utils.ViewAssertions.isBottomAlignedWithPadding
 import com.bekawestberg.loopinglayout.test.androidTest.utils.ViewAssertions.isLeftAlignedWithPadding
 import com.bekawestberg.loopinglayout.test.androidTest.utils.ViewAssertions.isRightAlignedWithPadding
 import com.bekawestberg.loopinglayout.test.androidTest.utils.ViewAssertions.isTopAlignedWithPadding
+import com.bekawestberg.loopinglayout.test.androidTest.utils.setLayoutManager
+import com.bekawestberg.loopinglayout.test.androidTest.utils.setRtl
 import org.hamcrest.Matcher
 import org.junit.Rule
 import org.junit.Test

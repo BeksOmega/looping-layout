@@ -1,8 +1,8 @@
 package com.bekawestberg.loopinglayout.test
 
+import android.widget.LinearLayout
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso.onView
-import androidx.test.espresso.assertion.PositionAssertions.*
 import androidx.test.espresso.matcher.ViewMatchers.withId
 import androidx.test.espresso.matcher.ViewMatchers.withText
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -77,7 +77,7 @@ class ScrollToAtOptAnchorTest {
         setAdapter(arrayOf("0", "1"), arrayOf(targetSize, nonTargetSize))
         val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(x = nonTargetExtraPortion))
+                .perform(RecyclerViewActions.scrollBy(x = targetSize))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0, ::addViewsAtOptAnchorEdge))
 
         onView(withText("0"))
@@ -379,21 +379,21 @@ class ScrollToAtOptAnchorTest {
 
     fun calculateNonTargetSizeWhenPartiallyVisible(orientation: Int): Int {
         val activity = activityRule.activity
-        val recycler = activity.findViewById<RecyclerView>(R.id.recycler) ?: return 0
+        val linearLayout = activity.findViewById<LinearLayout>(R.id.main_activity) ?: return 0
         return if (orientation == RecyclerView.HORIZONTAL) {
-            recycler.width - targetVisiblePortion
+            linearLayout.width - targetVisiblePortion
         } else {
-            recycler.height - targetVisiblePortion
+            linearLayout.height - targetVisiblePortion
         }
     }
 
     fun calculateNonTargetSizeWhenNotVisible(orientation: Int): Int {
         val activity = activityRule.activity
-        val recycler = activity.findViewById<RecyclerView>(R.id.recycler) ?: return 0
+        val linearLayout = activity.findViewById<LinearLayout>(R.id.main_activity) ?: return 0
         return if (orientation == RecyclerView.HORIZONTAL) {
-            recycler.width + nonTargetExtraPortion
+            linearLayout.width + nonTargetExtraPortion
         } else {
-            recycler.height + nonTargetExtraPortion
+            linearLayout.height + nonTargetExtraPortion
         }
     }
 }

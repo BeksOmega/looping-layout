@@ -17,6 +17,7 @@
 
 package com.bekawestberg.loopinglayout.test
 
+import android.widget.LinearLayout
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.assertion.PositionAssertions.*
@@ -198,12 +199,11 @@ class FindViewClosestToMiddleTest {
 
     private fun calculateSizeOfOneItem(orientation: Int): Int {
         val activity = activityRule.activity
-        val recycler = activity.findViewById<RecyclerView>(R.id.recycler) ?: return 0
-        val layoutManager: LoopingLayoutManager = recycler.layoutManager as LoopingLayoutManager;
+        val linearLayout = activity.findViewById<LinearLayout>(R.id.main_activity)
         return if (orientation == RecyclerView.HORIZONTAL) {
-            layoutManager.layoutWidth - sizeOfZeroItem - visiblePortionOfSecondZeroItem
+            linearLayout.width - sizeOfZeroItem - visiblePortionOfSecondZeroItem
         } else {
-            layoutManager.layoutHeight - sizeOfZeroItem - visiblePortionOfSecondZeroItem
+            linearLayout.height - sizeOfZeroItem - visiblePortionOfSecondZeroItem
         }
     }
 }

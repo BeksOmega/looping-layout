@@ -52,21 +52,9 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
     private var extraLayoutSpace = 0
 
     /**
-     * @return A Rect populated with the positions of the static edges of the layout. I.e. right
-     * and left in horizontal mode, top and bottom in vertical mode.
+     * Helps with some layout calculations. Mainly getting the non-scrolling edges of each view.
      */
-    private val nonScrollingEdges: Rect
-        get() {
-            val layoutRect = Rect()
-            if (orientation == VERTICAL) {
-                layoutRect.left = paddingLeft
-                layoutRect.right = width - paddingRight
-            } else {
-                layoutRect.top = paddingTop
-                layoutRect.bottom = height - paddingBottom
-            }
-            return layoutRect
-        }
+    private lateinit var orientationHelper: OrientationHelper
 
     /**
      * The width of the layout - not the recycler.
@@ -127,12 +115,16 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             require(orientation == HORIZONTAL || orientation == VERTICAL) {
                 "invalid orientation:$orientation"
             }
-            if (orientation == this.orientation) {
+            if (orientation != this.orientation) {
+                orientationHelper = OrientationHelper.createOrientationHelper(this, orientation)
+                assertNotInLayoutOrScroll(null)
+                field = orientation
+                requestLayout()
                 return
             }
-            assertNotInLayoutOrScroll(null)
-            field = orientation
-            requestLayout()
+            if (!::orientationHelper.isInitialized) {
+                orientationHelper = OrientationHelper.createOrientationHelper(this, orientation)
+            }
         }
 
     /**
@@ -184,10 +176,9 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
     }
 
     override fun onLayoutChildren(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
-        layoutRequest.initialize(this, state);
+        layoutRequest.initialize(this, state)
 
         detachAndScrapAttachedViews(recycler)
-        var layoutRect = nonScrollingEdges
 
         // A) We want to layout the item at the adapter index first, so that we can set the scroll offset.
         // B) We want the item to be laid out /at/ the edge associated with the adapter direction.
@@ -201,6 +192,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         while (sizeFilled < size) {
             val view = createViewForIndex(index, movementDir, recycler)
             val item = getItemForView(movementDir, view)
+            var layoutRect = getNonScrollingEdges(view)
             layoutRect = prevItem?.getPositionOfItemFollowingSelf(item, layoutRect) ?:
                     item.getPositionOfSelfAsFirst(layoutRect, layoutRequest.scrollOffset)
             layoutDecorated(view, layoutRect.left, layoutRect.top,
@@ -218,8 +210,6 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             topLeftIndex = layoutRequest.anchorIndex
             bottomRightIndex = stepIndex(index, -movementDir, state, false)
         }
-
-        layoutRequest.finishProcessing()
     }
 
     override fun canScrollVertically(): Boolean {
@@ -293,7 +283,6 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         if (childCount == 0 || delta == 0) {
             return 0
         }
-        var layoutRect = nonScrollingEdges
 
         val movementDir = Integer.signum(delta)
         scrapNonVisibleViews(recycler)
@@ -311,6 +300,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
                 index = stepIndex(index, movementDir, state)
                 val newView = createViewForIndex(index, movementDir, recycler)
                 val newItem = getItemForView(movementDir, newView)
+                var layoutRect = getNonScrollingEdges(newView)
                 layoutRect = selectedItem.getPositionOfItemFollowingSelf(newItem, layoutRect)
                 layoutDecorated(newView, layoutRect.left, layoutRect.top,
                         layoutRect.right, layoutRect.bottom)
@@ -325,6 +315,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             index = stepIndex(index, movementDir, state, updateIndex = false)
             val newView = createViewForIndex(index, movementDir, recycler)
             val newItem = getItemForView(movementDir, newView)
+            var layoutRect = getNonScrollingEdges(newView);
             layoutRect = selectedItem.getPositionOfItemFollowingSelf(newItem, layoutRect)
             layoutDecorated(newView, layoutRect.left, layoutRect.top,
                     layoutRect.right, layoutRect.bottom)
@@ -334,6 +325,34 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
 
         recycleViews(movementDir, recycler, state)
         return amountScrolled * movementDir
+    }
+
+    /**
+     * Returns a rect populated with the positions of the static edges of the view. I.e. right and
+     * left in horizontal mode, top and bottom in vertical mode.
+     */
+    private fun getNonScrollingEdges(view: View): Rect {
+        val layoutRect = Rect()
+        val isVertical = orientation == VERTICAL
+        // In LTR we align vertical layouts with the left edge, and in RTL the right edge.
+        when {
+            isVertical && isLayoutRTL -> {
+                layoutRect.right = width - paddingRight
+                layoutRect.left = layoutRect.right -
+                        orientationHelper.getDecoratedMeasurementInOther(view)
+            }
+            isVertical && !isLayoutRTL -> {
+                layoutRect.left = paddingLeft
+                layoutRect.right = layoutRect.left +
+                        orientationHelper.getDecoratedMeasurementInOther(view)
+            }
+            else -> {  // Horizontal
+                layoutRect.top = paddingTop
+                layoutRect.bottom = layoutRect.top +
+                        orientationHelper.getDecoratedMeasurementInOther(view)
+            }
+        }
+        return layoutRect
     }
 
     /**

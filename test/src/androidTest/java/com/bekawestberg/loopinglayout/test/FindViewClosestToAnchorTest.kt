@@ -17,6 +17,7 @@
 
 package com.bekawestberg.loopinglayout.test
 
+import android.widget.LinearLayout
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.assertion.PositionAssertions.*
@@ -27,8 +28,8 @@ import androidx.test.filters.LargeTest
 import androidx.test.rule.ActivityTestRule
 import com.bekawestberg.loopinglayout.library.LoopingLayoutManager
 import com.bekawestberg.loopinglayout.library.childClosestToAnchorEdge
-import com.bekawestberg.loopinglayout.test.androidTest.utils.*
 import com.bekawestberg.loopinglayout.test.androidTest.utils.RecyclerViewActions.scrollBy
+import com.bekawestberg.loopinglayout.test.androidTest.utils.RecyclerViewMatcher
 import com.bekawestberg.loopinglayout.test.androidTest.utils.setAdapter
 import com.bekawestberg.loopinglayout.test.androidTest.utils.setLayoutManager
 import com.bekawestberg.loopinglayout.test.androidTest.utils.setRtl
@@ -198,12 +199,11 @@ class FindViewClosestToAnchorTest {
 
     private fun calculateSizeOfOneItem(orientation: Int): Int {
         val activity = activityRule.activity
-        val recycler = activity.findViewById<RecyclerView>(R.id.recycler) ?: return 0
-        val layoutManager: LoopingLayoutManager = recycler.layoutManager as LoopingLayoutManager;
+        val linearLayout = activity.findViewById<LinearLayout>(R.id.main_activity)
         return if (orientation == RecyclerView.HORIZONTAL) {
-            layoutManager.layoutWidth - sizeOfZeroItem - visiblePortionOfSecondZeroItem
+            linearLayout.width - sizeOfZeroItem - visiblePortionOfSecondZeroItem
         } else {
-            layoutManager.layoutHeight - sizeOfZeroItem - visiblePortionOfSecondZeroItem
+            linearLayout.height - sizeOfZeroItem - visiblePortionOfSecondZeroItem
         }
     }
 }
