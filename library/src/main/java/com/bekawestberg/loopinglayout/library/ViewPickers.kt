@@ -22,10 +22,9 @@ import kotlin.math.abs
 
 /**
  * The default view picker used when one is not provided.
- *
  * @return A view with the given adapter index.
  */
-fun defaultPicker(
+public fun defaultPicker(
         targetAdapterIndex: Int,
         layoutManager: LoopingLayoutManager
 ): View? {
@@ -33,13 +32,13 @@ fun defaultPicker(
 }
 
 /**
- * @return A view with the given adapter index. If there are multiple views associated with the
+ * Returns a view with the given [targetAdapterIndex]. If there are multiple views associated with the
  * given index, this returns the view closest to the anchor edge.
  *
  * The anchor edge is the edge the view associated with index 0 would be initially laid out
  * against. For example: In a RTL horizontal layout, the anchor edge would be the right edge.
  */
-fun childClosestToAnchorEdge(
+public fun childClosestToAnchorEdge(
         targetAdapterIndex: Int,
         layoutManager: LoopingLayoutManager
 ): View? {
@@ -61,10 +60,10 @@ fun childClosestToAnchorEdge(
 }
 
 /**
- * @return A view with the given adapter index. If there are multiple views associated with the
+ * Returns a view with the given [targetAdapterIndex]. If there are multiple views associated with the
  * given index, this returns the view whose middle is closest to the middle of the layout.
  */
-fun childClosestToMiddle(
+public fun childClosestToMiddle(
         targetAdapterIndex: Int,
         layoutManager: LoopingLayoutManager
 ): View? {

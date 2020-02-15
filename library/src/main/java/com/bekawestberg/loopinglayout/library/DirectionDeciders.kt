@@ -7,10 +7,9 @@ import kotlin.math.min
 
 /**
  * The default decider used when one is not provided.
- *
  * @return A movement direction that should be used to "scroll" to the given adapter index.
  */
-fun defaultDecider(
+public fun defaultDecider(
         adapterIndex: Int,
         layoutManager: LoopingLayoutManager,
         itemCount: Int
@@ -19,12 +18,12 @@ fun defaultDecider(
 }
 
 /**
- * @return A movement direction that should be used to "scroll" to the given adapter index.
- *         This function always returns the direction associated with creating views at the
- *         anchor edge. The anchor edge being the edge the 0 indexed view was aligned with when
- *         the recycler was initially laid out.
+ * Returns a movement direction that should be used to "scroll" to the given [adapterIndex].
+ * This function always returns the direction associated with creating views at the
+ * anchor edge. The anchor edge being the edge the 0 indexed view was aligned with when
+ * the recycler was initially laid out.
  */
-fun addViewsAtAnchorEdge(
+public fun addViewsAtAnchorEdge(
         adapterIndex: Int,
         layoutManager: LoopingLayoutManager,
         itemCount: Int
@@ -33,12 +32,12 @@ fun addViewsAtAnchorEdge(
 }
 
 /**
- * @return A movement direction that should be used to "scroll" to the given adapter index.
- *         This function always returns the direction associated with creating views at the edge
- *         opposite the anchor edge. The anchor edge being the edge the 0 indexed view was aligned with when
- *         the recycler was initially laid out.
+ * Returns a movement direction that should be used to "scroll" to the given [adapterIndex].
+ * This function always returns the direction associated with creating views at the edge
+ * opposite the anchor edge. The anchor edge being the edge the 0 indexed view was aligned with when
+ * the recycler was initially laid out.
  */
-fun addViewsAtOptAnchorEdge(
+public fun addViewsAtOptAnchorEdge(
         adapterIndex: Int,
         layoutManager: LoopingLayoutManager,
         itemCount: Int
@@ -47,13 +46,13 @@ fun addViewsAtOptAnchorEdge(
 }
 
 /**
- * @return A movement direction that should be used to "scroll" to the given adapter index.
- *         This function estimates which direction puts the view on screen with the least amount
- *         of scrolling. It is an estimation because the function assumes all views are the same
- *         size. If some views are larger or smaller than others, this may not return the correct
- *         direction.
+ * Returns a movement direction that should be used to "scroll" to the given [adapterIndex].
+ * This function estimates which direction puts the view on screen with the least amount
+ * of scrolling. It is an estimation because the function assumes all views are the same
+ * size. If some views are larger or smaller than others, this may not return the correct
+ * direction.
  */
-fun estimateShortestRoute(
+public fun estimateShortestRoute(
         adapterIndex: Int,
         layoutManager: LoopingLayoutManager,
         itemCount: Int

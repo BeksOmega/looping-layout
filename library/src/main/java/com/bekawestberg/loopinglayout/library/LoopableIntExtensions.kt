@@ -19,8 +19,8 @@ package com.bekawestberg.loopinglayout.library
 
 
 /**
- * @return The value of the Int plus the given amount, but "loops" the value to keep it between
- *      the count and zero.
+ * Returns the value of the Int plus the given [amount], but "loops" the value to keep it between
+ * the [count] and zero.
  */
 internal fun Int.loop(amount: Int, count: Int): Int {
     var newVal = this + amount;
@@ -31,16 +31,14 @@ internal fun Int.loop(amount: Int, count: Int): Int {
 }
 
 /**
- * @return The value of the int plus one, but "looped" to keep the value between the count
- *      and zero.
+ * Returns the value of the Int plus one, but "loops" the value to keep it between the [count] and zero.
  */
 internal fun Int.loopedIncrement(count: Int): Int {
     return this.loop(1, count)
 }
 
 /**
- * @return The value of the int minus one, but "looped" to keep the value between the count
- *      and zero.
+ * Returns the value of the Int minus one, but "loops" the value to keep it between the [count] and zero.
  */
 internal fun Int.loopedDecrement(count: Int): Int {
     return this.loop(-1, count)
