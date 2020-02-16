@@ -1,5 +1,6 @@
 package com.bekawestberg.loopinglayout.test
 
+import android.widget.LinearLayout
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.assertion.PositionAssertions.*
@@ -571,21 +572,21 @@ class ScrollToEstimatedShortestTest {
 
     fun calculateFillerSizeWhenPartiallyVisible(orientation: Int): Int {
         val activity = activityRule.activity
-        val recycler = activity.findViewById<RecyclerView>(R.id.recycler) ?: return 0
+        val linearLayout = activity.findViewById<LinearLayout>(R.id.main_activity) ?: return 0
         return if (orientation == RecyclerView.HORIZONTAL) {
-            recycler.width
+            linearLayout.width
         } else {
-            recycler.height
+            linearLayout.height
         }
     }
 
     fun calculateFillerSizeWhenNotVisible(orientation: Int): Int {
         val activity = activityRule.activity
-        val recycler = activity.findViewById<RecyclerView>(R.id.recycler) ?: return 0
+        val linearLayout = activity.findViewById<LinearLayout>(R.id.main_activity) ?: return 0
         return if (orientation == RecyclerView.HORIZONTAL) {
-            recycler.width + fillerViewExtraPortion
+            linearLayout.width + fillerViewExtraPortion
         } else {
-            recycler.height + fillerViewExtraPortion
+            linearLayout.height + fillerViewExtraPortion
         }
     }
 }
