@@ -91,7 +91,7 @@ that for more information about RecyclerViews.
  * ReverseLayout support for both orientations, as well as LTR, and RTL
  * Public functions for finding items and positions
  * Public functions for scrolling programmatically
- * Snap Helper support via the LoopingSnapHelper(https://github.com/BeksOmega/looping-layout/wiki/Snap-helpers)
+ * Snap Helper support via the [LoopingSnapHelper](https://github.com/BeksOmega/looping-layout/wiki/Snap-helpers)
  * Accessibility (TalkBack and Voice Access) support
  
 ## :page_with_curl: License 
@@ -120,7 +120,7 @@ If you have any questions about the project please feel free to message bekawest
 the subject line "Looping Layout". All questions are welcome, don't be shy! Just try to include
 as much helpful information as possible =)
 
-Currently there is no mailing list, but if you would like one please message [bekawestberg@gmail.com]
+Currently there is no mailing list, but if you would like one please message bekawestberg@gmail.com
 about that as well!
 
 [apache]: https://www.apache.org/licenses/LICENSE-2.0
