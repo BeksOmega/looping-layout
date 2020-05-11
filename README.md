@@ -9,7 +9,7 @@ non-looping layouts, and it better conforms to the MVC-like architecture provide
 
 This project was original created and is maintained by [Beka Westberg][linked-in] (BeksOmega).
 
-It lives at [https://github.com/BeksOmega/looping-layout].
+It lives at https://github.com/BeksOmega/looping-layout.
 
 ## :star2: Setup 
 
@@ -81,7 +81,7 @@ public class MyActivity extends Activity {
 }
 ```
 
-Example code was modified from [https://developer.android.com/guide/topics/ui/layout/recyclerview]. See
+Example code was modified from https://developer.android.com/guide/topics/ui/layout/recyclerview. See
 that for more information about RecyclerViews.
 
 ## :sparkles: Features 
@@ -91,7 +91,7 @@ that for more information about RecyclerViews.
  * ReverseLayout support for both orientations, as well as LTR, and RTL
  * Public functions for finding items and positions
  * Public functions for scrolling programmatically
- * Snap Helper support
+ * Snap Helper support via the LoopingSnapHelper(https://github.com/BeksOmega/looping-layout/wiki/Snap-helpers)
  * Accessibility (TalkBack and Voice Access) support
  
 ## :page_with_curl: License 
@@ -116,7 +116,7 @@ If you think you have found a bug definitely report it using the [issue template
 to search for for duplicate issues before reporting, as someone else may have already come across
 your problem.
 
-If you have any questions about the project please feel free to message [bekawestberg@gmail.com] with
+If you have any questions about the project please feel free to message bekawestberg@gmail.com with
 the subject line "Looping Layout". All questions are welcome, don't be shy! Just try to include
 as much helpful information as possible =)
 
