@@ -158,9 +158,13 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         // All of this information is based on keeping the item currently at the anchor edge
         // at the anchor edge.
         val direction = getMovementDirectionFromAdapterDirection(TOWARDS_LOWER_INDICES)
-        return LayoutRequest(
-                anchorIndex = getInitialIndex(direction),
-                scrollOffset = getInitialItem(direction).hiddenSize)
+        return if (childCount == 0) {  // Occurs if the screen is off on startup.
+            null
+        } else {
+            LayoutRequest(
+                    anchorIndex = getInitialIndex(direction),
+                    scrollOffset = getInitialItem(direction).hiddenSize)
+        }
     }
 
     public override fun onRestoreInstanceState(state: Parcelable?) {
