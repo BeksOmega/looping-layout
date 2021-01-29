@@ -174,6 +174,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
     }
 
     public override fun onLayoutChildren(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
+        //Log.v(TAG, "layout children", Exception());
         layoutRequest.initialize(this, state)
 
         detachAndScrapAttachedViews(recycler)
@@ -208,6 +209,9 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             topLeftIndex = layoutRequest.anchorIndex
             bottomRightIndex = stepIndex(index, -movementDir, state, false)
         }
+
+        //layoutRequest = LayoutRequest()
+        //layoutRequest.finishProcessing();
     }
 
     public override fun canScrollVertically(): Boolean {
@@ -1158,7 +1162,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             anchorIndex = RecyclerView.NO_POSITION
             scrollOffset = 0
             adapterDirection = TOWARDS_LOWER_INDICES
-            scrollStrategy = null
+            //scrollStrategy = null
             hasBeenInitialized = false
         }
 

@@ -1,5 +1,6 @@
 package com.bekawestberg.loopinglayout.test
 
+import android.util.Log
 import android.widget.LinearLayout
 import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso.onView

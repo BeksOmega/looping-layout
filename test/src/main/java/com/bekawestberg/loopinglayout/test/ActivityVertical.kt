@@ -48,7 +48,7 @@ class ActivityVertical : AppCompatActivity() {
 
         snapHelper?.attachToRecyclerView(mRecyclerView)
 
-        val button = findViewById<FloatingActionButton>(R.id.fab)
-        button.setOnClickListener { mAdapter.notifyDataSetChanged() }
+//        val button = findViewById<FloatingActionButton>(R.id.fab)
+//        button.setOnClickListener { mAdapter.notifyDataSetChanged() }
     }
 }

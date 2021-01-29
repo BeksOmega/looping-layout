@@ -32,6 +32,7 @@ import com.bekawestberg.loopinglayout.test.androidTest.utils.ViewAssertions.isBo
 import com.bekawestberg.loopinglayout.test.androidTest.utils.ViewAssertions.isLeftAlignedWithPadding
 import com.bekawestberg.loopinglayout.test.androidTest.utils.ViewAssertions.isRightAlignedWithPadding
 import com.bekawestberg.loopinglayout.test.androidTest.utils.ViewAssertions.isTopAlignedWithPadding
+import com.bekawestberg.loopinglayout.test.androidTest.utils.setAdapter
 import com.bekawestberg.loopinglayout.test.androidTest.utils.setLayoutManager
 import com.bekawestberg.loopinglayout.test.androidTest.utils.setRtl
 import org.hamcrest.Matcher
@@ -55,12 +56,14 @@ class InitialLayoutTest {
 
     @Test
     fun defaultHorizontal() {
+        setUpAdapter()
         setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         assertStartsLeft()
     }
 
     @Test
     fun reverseHorizontal() {
+        setUpAdapter()
         setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         assertStartsRight()
     }
@@ -68,6 +71,7 @@ class InitialLayoutTest {
     @Test
     fun defaultHorizontalRtl() {
         setRtl()
+        setUpAdapter()
         setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
         assertStartsRight()
     }
@@ -75,20 +79,27 @@ class InitialLayoutTest {
     @Test
     fun reverseHorizontalRTL() {
         setRtl()
+        setUpAdapter()
         setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
         assertStartsLeft()
     }
 
     @Test
     fun defaultVertical() {
+        setUpAdapter()
         setLayoutManager(LoopingLayoutManager.VERTICAL, false)
         assertStartsTop()
     }
 
     @Test
     fun reverseVertical() {
+        setUpAdapter()
         setLayoutManager(LoopingLayoutManager.VERTICAL, true)
         assertStartsBottom()
+    }
+
+    private fun setUpAdapter() {
+        setAdapter(arrayOf("0", "1", "2", "3", "4", "5", "6", "7", "8", "9"))
     }
 
     private fun matchExists(matcher: Matcher<View>): Boolean {
