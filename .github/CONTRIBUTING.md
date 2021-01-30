@@ -32,6 +32,12 @@ way to get more familiar with the project.
 bit more in-depth. Often they solve a larger problem than issues labled
 [good-first-issue][good-first-issue] or they involve some creative thinking and design.
 
+Currently we're working towards [release 0.4.0][milestone], which is a
+[minor version bump][semver], meaning it will include some new features!
+Namely functions that will allow people to create better animations using
+the LoopingLayoutManager (eg carousel animations). Please check out the
+[milestone][milestone] if you're interested in contributing =)
+
 ### :star2:Getting started
 
 To submit your first code contribution follow the below steps.
@@ -133,3 +139,5 @@ are always appreciated, no matter what form they come in =)
 [good-first-issue]: https://github.com/BeksOmega/looping-layout/issues?q=is%3Aissue+is%3Aopen+label%3Agood-first-issue
 [help-wanted]: https://github.com/BeksOmega/looping-layout/issues?q=is%3Aissue+is%3Aopen+label%3help-wanted
 [issue-template]: https://github.com/BeksOmega/looping-layout/issues/new/choose
+[semver]: https://semver.org/
+[milestone]: https://github.com/BeksOmega/looping-layout/milestone/1
