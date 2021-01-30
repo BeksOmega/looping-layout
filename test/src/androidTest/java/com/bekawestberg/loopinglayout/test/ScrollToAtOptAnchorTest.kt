@@ -68,7 +68,7 @@ class ScrollToAtOptAnchorTest {
 
         onView(withText("1"))
                 .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
-        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
