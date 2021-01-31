@@ -19,7 +19,6 @@ package com.bekawestberg.loopinglayout.test
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bekawestberg.loopinglayout.library.LoopingLayoutManager
 
@@ -28,7 +27,7 @@ class ActivityGeneric : AppCompatActivity() {
     private var mAdapter: AdapterGeneric = AdapterGeneric(
             arrayOf("0", "1", "2", "3", "4", "5", "6"/**/))
     private var mLayoutManager =
-            LinearLayoutManager(this, LoopingLayoutManager.HORIZONTAL, false)
+            LoopingLayoutManager(this, LoopingLayoutManager.HORIZONTAL, false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

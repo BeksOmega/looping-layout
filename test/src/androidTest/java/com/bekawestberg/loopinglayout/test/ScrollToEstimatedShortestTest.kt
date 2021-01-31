@@ -83,10 +83,11 @@ class ScrollToEstimatedShortestTest {
      * -: Represents the size of the view. Eg ----- A ----- B - Shows that "A is a large view and
      *    "B" is a small one.
      *
-     * Note that although some views are shown to be off screen, they may or may not actually exist.
-     *
-     * For testing purposes you can kind of imagine the layout having an infinite number of views
-     * (in order) in either direction.
+     * Notes:
+     *   - Vertical recyclers are also diagrammed horizontally. Left = Top, Right = Bottom.
+     *   - Although some views are shown to be off screen, they may or may not actually exist.
+     *   - For testing purposes you can kind of imagine the layout having an infinite number of views
+     *     (in order) in either direction.
      */
 
     @Test
