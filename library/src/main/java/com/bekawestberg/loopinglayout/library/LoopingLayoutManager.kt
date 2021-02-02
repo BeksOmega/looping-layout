@@ -210,6 +210,11 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         }
     }
 
+    public override fun onLayoutCompleted(state: RecyclerView.State?) {
+        super.onLayoutCompleted(state)
+        layoutRequest.finishProcessing();
+    }
+
     public override fun canScrollVertically(): Boolean {
         return orientation == VERTICAL
     }
