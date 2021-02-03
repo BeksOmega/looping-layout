@@ -73,6 +73,21 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
     /** Describes the adapter index of the view in the bottom/right -most position. */
     public var bottomRightIndex = 0
             private set
+
+    /**
+     * The adapter index of the view at the edge of the layout where the 0th item was
+     * originally laid out.
+     */
+    public val anchorIndex
+        get() = getInitialIndex(getMovementDirectionFromAdapterDirection(TOWARDS_LOWER_INDICES))
+
+    /**
+     * The adapter index of the view at the edge of the layout *opposite* the edge where the 0th
+     * item was originally laid out.
+     */
+    public val optAnchorIndex
+        get() = getInitialIndex(getMovementDirectionFromAdapterDirection(TOWARDS_HIGHER_INDICES))
+
     /**
      * When the layout manager needs to scroll to a position (via smooth scrolling) it needs some
      * method to decide which movement direction to scroll in. This variable stores that method.
@@ -782,6 +797,64 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
             }
         }
         return views
+    }
+
+    /**
+     * Returns the adapter index of the view with the *lowest* adapter index that is even slightly
+     * visible.
+     */
+    public fun findFirstVisibleItemPosition(): Int {
+        var lowestIndex = Int.MAX_VALUE;
+        for (i in 0 until childCount) {
+            val view = getChildAt(i);
+            if (view != null && getPosition(view) < lowestIndex)  {
+                lowestIndex = getPosition(view)
+            }
+        }
+        return lowestIndex;
+    }
+
+    /**
+     * Returns the adapter index of the view with the *lowest* adapter index that is fully visible.
+     */
+    public fun findFirstCompletelyVisibleItemPosition(): Int {
+        var lowestIndex = Int.MAX_VALUE;
+        for (i in 0 until childCount) {
+            val view = getChildAt(i);
+            if (view != null && getPosition(view) < lowestIndex && viewIsFullyVisible(view))  {
+                lowestIndex = getPosition(view)
+            }
+        }
+        return lowestIndex;
+    }
+
+    /**
+     * Returns the adapter index of the view with the *highest* adapter index that is even slightly
+     * visible.
+     */
+    public fun findLastVisibleItemPosition(): Int {
+        var highestIndex = 0;
+        for (i in 0 until childCount) {
+            val view = getChildAt(i)
+            if (view != null && getPosition(view) > highestIndex)  {
+                highestIndex = getPosition(view)
+            }
+        }
+        return highestIndex;
+    }
+
+    /**
+     * Returns the adapter index of the view with the *highest* adapter index that is fully visible.
+     */
+    public fun findLastCompletelyVisibleItemPosition(): Int {
+        var highestIndex = 0;
+        for (i in 0 until childCount) {
+            val view = getChildAt(i)
+            if (view != null && getPosition(view) > highestIndex && viewIsFullyVisible(view))  {
+                highestIndex = getPosition(view)
+            }
+        }
+        return highestIndex;
     }
 
     /**
