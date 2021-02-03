@@ -807,7 +807,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         var lowestIndex = Int.MAX_VALUE;
         for (i in 0 until childCount) {
             val view = getChildAt(i);
-            if (view != null && getPosition(view) < lowestIndex)  {
+            if (view != null && getPosition(view) < lowestIndex && viewIsVisible(view))  {
                 lowestIndex = getPosition(view)
             }
         }
@@ -836,7 +836,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         var highestIndex = 0;
         for (i in 0 until childCount) {
             val view = getChildAt(i)
-            if (view != null && getPosition(view) > highestIndex)  {
+            if (view != null && getPosition(view) > highestIndex && viewIsVisible(view))  {
                 highestIndex = getPosition(view)
             }
         }
