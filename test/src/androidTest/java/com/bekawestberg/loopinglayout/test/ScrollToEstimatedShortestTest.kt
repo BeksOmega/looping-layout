@@ -57,8 +57,8 @@ class ScrollToEstimatedShortestTest {
      * 4) partVis/notVis: Whether the target item we want to scroll to is partially visible, or not
      *    visible. The estimateShortestDistance decider has different behavior in these cases.
      * 5) anchor/optAnchor: Refers to which side want the target to be aligned with after the scroll
-     *    is completed. If "anchor" that means we want the view to be aliged with the side where the
-     *    0 adapter item was originally laid out. If "optAnchor", the opposite.
+     *    is completed. If "anchor" that means we want the view to be aligned with the side where
+     *    the 0 adapter item was originally laid out. If "optAnchor", the opposite.
      * 6) overSeam/inLoop: Whether in scrolling the items we should pass over the seam (where the
      *    where the 0 item touches the last item), or stay within the loop. Only applies if notVis.
      */
@@ -80,7 +80,7 @@ class ScrollToEstimatedShortestTest {
      * View diagram info:
      * |: Denotes the edges of the screen. Eg |---- A ----| Shows that the "A" view takes up exactly
      *    the size of the screen.
-     * -: Represents the size of the view. Eg ----- A ----- B - Shows that "A is a large view and
+     * -: Represents the size of the view. Eg ----- A ----- B - Shows that "A" is a large view and
      *    "B" is a small one.
      *
      * Notes:
