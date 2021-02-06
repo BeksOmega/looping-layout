@@ -16,7 +16,7 @@ It lives at https://github.com/BeksOmega/looping-layout.
 Add the dependency to your build.gradle file.
 ```groovy
 dependencies {
-    implementation 'com.github.beksomega:loopinglayout:0.3.2'
+    implementation 'com.github.beksomega:loopinglayout:0.4.0'
 }
 ```
 
@@ -88,8 +88,9 @@ that for more information about RecyclerViews.
 
  * Vertical and Horizontal Orientations
  * LTR and RTL support
- * ReverseLayout support for both orientations, as well as LTR, and RTL
+ * Reverse layout support for both orientations, as well as LTR, and RTL
  * Public functions for finding items and positions
+ * Public functions for finding adapter indices of important positions (eg at the start/end)
  * Public functions for scrolling programmatically
  * Snap Helper support via the [LoopingSnapHelper](https://github.com/BeksOmega/looping-layout/wiki/Snap-helpers)
  * Accessibility (TalkBack and Voice Access) support
