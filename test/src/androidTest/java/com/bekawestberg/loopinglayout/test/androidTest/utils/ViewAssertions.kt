@@ -126,10 +126,10 @@ object ViewAssertions {
                 location1[1] + view1.height - view1.paddingBottom)
 
         val rect2 = Rect(
-                location1[0] + view1.paddingLeft,
-                location1[1] + view1.paddingTop,
-                location1[0] + view1.width - view1.paddingRight,
-                location1[1] + view1.height - view1.paddingBottom)
+                location2[0] + view2.paddingLeft,
+                location2[1] + view2.paddingTop,
+                location2[0] + view2.width - view2.paddingRight,
+                location2[1] + view2.height - view2.paddingBottom)
 
         when (position) {
             Position.LEFT_PADDING -> return rect1.left == rect2.left

@@ -36,13 +36,29 @@ import java.lang.Thread.sleep
 class SwipeTest {
 
     val TAG = "SwipeTest"
+    
+    private val HORIZ = RecyclerView.HORIZONTAL;
+    private val VERT = RecyclerView.VERTICAL;
+
 
     @get:Rule
     var activityRule = ActivityTestRule(ActivityGeneric::class.java)
 
+    /*
+     * Test naming info:
+     * 1) horiz/vert: Whether the test is for a horizontal or vertical layout.
+     * 2) ltr/rtl: Whether the test is for a left-to-right or right-to-left layout.
+     * 3) notRev/rev: Whether the layout is "reverse" from how it would normally layout. Eg in ltr
+     *    mode the side where the adapter item at index 0 would normally be laid out is left. But
+     *    in reversed mode, it is laid out on the right.
+     * 4) left/right/up/down/both: The direction of the swipe. For example if it is "left" the views
+     *    are moving toward the left. If the value it is both, the test swipes in both valid
+     *    directions for the given orientation.
+     */
+
     @Test
-    fun defaultHorizontalSwipeLeft() {
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+    fun horiz_ltr_notRev_left() {
+        setLayoutManager(HORIZ, false)
         onView(withId(R.id.recycler))
                 .perform(swipeLeft())
         stopSwipe()
@@ -51,8 +67,8 @@ class SwipeTest {
     }
 
     @Test
-    fun defaultHorizontalSwipeRight() {
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+    fun horiz_ltr_notRev_right() {
+        setLayoutManager(HORIZ, false)
         onView(withId(R.id.recycler))
                 .perform(swipeRight())
         stopSwipe()
@@ -61,113 +77,8 @@ class SwipeTest {
     }
 
     @Test
-    fun defaultHorizontalSwipeBoth() {
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
-        onView(withId(R.id.recycler))
-                .perform(swipeLeft())
-        stopSwipe()
-        onView(withId(R.id.recycler))
-                .perform(swipeRight())
-        stopSwipe()
-
-        assertOrder(Int::loopedIncrement)
-    }
-
-    @Test
-    fun reverseHorizontalSwipeLeft() {
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
-        onView(withId(R.id.recycler))
-                .perform(swipeLeft())
-        stopSwipe()
-
-        assertOrder(Int::loopedDecrement)
-    }
-
-    @Test
-    fun reverseHorizontalSwipeRight() {
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
-        onView(withId(R.id.recycler))
-                .perform(swipeRight())
-        stopSwipe()
-
-        assertOrder(Int::loopedDecrement)
-    }
-
-    @Test
-    fun reverseHorizontalSwipeBoth() {
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
-        onView(withId(R.id.recycler))
-                .perform(swipeLeft())
-        stopSwipe()
-        onView(withId(R.id.recycler))
-                .perform(swipeRight())
-        stopSwipe()
-
-        assertOrder(Int::loopedDecrement)
-    }
-
-    @Test
-    fun defaultHorizontalRTLSwipeLeft() {
-        setRtl()
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
-        onView(withId(R.id.recycler))
-                .perform(swipeLeft())
-        stopSwipe()
-
-        assertOrder(Int::loopedDecrement)
-    }
-
-    @Test
-    fun defaultHorizontalRTLSwipeRight() {
-        setRtl()
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
-        onView(withId(R.id.recycler))
-                .perform(swipeRight())
-        stopSwipe()
-
-        assertOrder(Int::loopedDecrement)
-    }
-
-    @Test
-    fun defaultHorizontalRTLSwipeBoth() {
-        setRtl()
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
-        onView(withId(R.id.recycler))
-                .perform(swipeLeft())
-        stopSwipe()
-        onView(withId(R.id.recycler))
-                .perform(swipeRight())
-        stopSwipe()
-
-        assertOrder(Int::loopedDecrement)
-    }
-
-    @Test
-    fun reverseHorizontalRTLSwipeLeft() {
-        setRtl()
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
-        onView(withId(R.id.recycler))
-                .perform(swipeLeft())
-        stopSwipe()
-
-        assertOrder(Int::loopedIncrement)
-    }
-
-    @Test
-    fun reverseHorizontalRTLSwipeRight() {
-        setRtl()
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
-        onView(withId(R.id.recycler))
-                .perform(swipeRight())
-        stopSwipe()
-
-        assertOrder(Int::loopedIncrement)
-    }
-
-    @Test
-    fun reverseHorizontalRTLSwipeBoth() {
-        setRtl()
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+    fun horiz_ltr_notRev_both() {
+        setLayoutManager(HORIZ, false)
         onView(withId(R.id.recycler))
                 .perform(swipeLeft())
         stopSwipe()
@@ -179,8 +90,113 @@ class SwipeTest {
     }
 
     @Test
-    fun defaultVerticalSwipeUp() {
-        setLayoutManager(LoopingLayoutManager.VERTICAL, false)
+    fun horiz_ltr_rev_left() {
+        setLayoutManager(HORIZ, true)
+        onView(withId(R.id.recycler))
+                .perform(swipeLeft())
+        stopSwipe()
+
+        assertOrder(Int::loopedDecrement)
+    }
+
+    @Test
+    fun horiz_ltr_rev_right() {
+        setLayoutManager(HORIZ, true)
+        onView(withId(R.id.recycler))
+                .perform(swipeRight())
+        stopSwipe()
+
+        assertOrder(Int::loopedDecrement)
+    }
+
+    @Test
+    fun horiz_ltr_rev_both() {
+        setLayoutManager(HORIZ, true)
+        onView(withId(R.id.recycler))
+                .perform(swipeLeft())
+        stopSwipe()
+        onView(withId(R.id.recycler))
+                .perform(swipeRight())
+        stopSwipe()
+
+        assertOrder(Int::loopedDecrement)
+    }
+
+    @Test
+    fun horiz_rtl_notRev_left() {
+        setRtl()
+        setLayoutManager(HORIZ, false)
+        onView(withId(R.id.recycler))
+                .perform(swipeLeft())
+        stopSwipe()
+
+        assertOrder(Int::loopedDecrement)
+    }
+
+    @Test
+    fun horiz_rtl_notRev_right() {
+        setRtl()
+        setLayoutManager(HORIZ, false)
+        onView(withId(R.id.recycler))
+                .perform(swipeRight())
+        stopSwipe()
+
+        assertOrder(Int::loopedDecrement)
+    }
+
+    @Test
+    fun horiz_rtl_notRev_both() {
+        setRtl()
+        setLayoutManager(HORIZ, false)
+        onView(withId(R.id.recycler))
+                .perform(swipeLeft())
+        stopSwipe()
+        onView(withId(R.id.recycler))
+                .perform(swipeRight())
+        stopSwipe()
+
+        assertOrder(Int::loopedDecrement)
+    }
+
+    @Test
+    fun horiz_rtl_rev_left() {
+        setRtl()
+        setLayoutManager(HORIZ, true)
+        onView(withId(R.id.recycler))
+                .perform(swipeLeft())
+        stopSwipe()
+
+        assertOrder(Int::loopedIncrement)
+    }
+
+    @Test
+    fun horiz_rtl_rev_right() {
+        setRtl()
+        setLayoutManager(HORIZ, true)
+        onView(withId(R.id.recycler))
+                .perform(swipeRight())
+        stopSwipe()
+
+        assertOrder(Int::loopedIncrement)
+    }
+
+    @Test
+    fun horiz_rtl_rev_both() {
+        setRtl()
+        setLayoutManager(HORIZ, true)
+        onView(withId(R.id.recycler))
+                .perform(swipeLeft())
+        stopSwipe()
+        onView(withId(R.id.recycler))
+                .perform(swipeRight())
+        stopSwipe()
+
+        assertOrder(Int::loopedIncrement)
+    }
+
+    @Test
+    fun VERT_notRev_up() {
+        setLayoutManager(VERT, false)
         onView(withId(R.id.recycler))
                 .perform(swipeUp())
         stopSwipe()
@@ -189,8 +205,8 @@ class SwipeTest {
     }
 
     @Test
-    fun defaultVerticalSwipeDown() {
-        setLayoutManager(LoopingLayoutManager.VERTICAL, false)
+    fun VERT_notRev_down() {
+        setLayoutManager(VERT, false)
         onView(withId(R.id.recycler))
                 .perform(swipeDown())
         stopSwipe()
@@ -199,8 +215,8 @@ class SwipeTest {
     }
 
     @Test
-    fun defaultVerticalSwipeBoth() {
-        setLayoutManager(LoopingLayoutManager.VERTICAL, false)
+    fun VERT_notRev_both() {
+        setLayoutManager(VERT, false)
         onView(withId(R.id.recycler))
                 .perform(swipeUp())
         stopSwipe()
@@ -212,8 +228,8 @@ class SwipeTest {
     }
 
     @Test
-    fun reverseVerticalSwipeUp() {
-        setLayoutManager(LoopingLayoutManager.VERTICAL, true)
+    fun VERT_rev_up() {
+        setLayoutManager(VERT, true)
         onView(withId(R.id.recycler))
                 .perform(swipeUp())
         stopSwipe()
@@ -222,8 +238,8 @@ class SwipeTest {
     }
 
     @Test
-    fun reverseVerticalSwipeDown() {
-        setLayoutManager(LoopingLayoutManager.VERTICAL, true)
+    fun VERT_rev_down() {
+        setLayoutManager(VERT, true)
         onView(withId(R.id.recycler))
                 .perform(swipeDown())
         stopSwipe()
@@ -232,8 +248,8 @@ class SwipeTest {
     }
 
     @Test
-    fun reverseVerticalSwipeBoth() {
-        setLayoutManager(LoopingLayoutManager.VERTICAL, true)
+    fun VERT_rev_both() {
+        setLayoutManager(VERT, true)
         onView(withId(R.id.recycler))
                 .perform(swipeUp())
         stopSwipe()

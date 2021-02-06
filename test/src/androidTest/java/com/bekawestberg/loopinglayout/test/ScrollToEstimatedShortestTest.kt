@@ -31,562 +31,700 @@ import org.junit.runner.RunWith
 @LargeTest
 class ScrollToEstimatedShortestTest {
 
-    internal var TAG = "ExampleInstrumentedTest"
+    internal var TAG = "EstimateShortestTest"
     // The width of the item associated with adapter index 0.
-    private val targetSize = 100
-    // Only show half the item when testing partial visibility.
-    private val targetVisiblePortion = targetSize / 2
+    private val TARGET_SIZE = 100
+    // A constant size to use for views that are not the filler view, and are not the target view.
+    private val OTHER_SIZE = 100
     // Makes the view that fills the screen a little bit wider than the recycler so that
     // the target is totally hidden.
-    private val fillerViewExtraPortion = 100
-    // Used to center the filler view so that there is equal extra on either side.
-    private val halfFillerViewExtraPortion = fillerViewExtraPortion / 2
-    // A constant size to use for views that are not the filler view, and are not the target view.
-    private val otherViewSize = 100
+    private val EXTRA_FILLER_SIZE = 100
+
+    private val HORIZ = RecyclerView.HORIZONTAL;
+    private val VERT = RecyclerView.VERTICAL;
 
 
     @get:Rule
     var activityRule = ActivityTestRule(ActivityGeneric::class.java)
 
+    /*
+     * Test naming info:
+     * 1) horiz/vert: Whether the test is for a horizontal or vertical layout.
+     * 2) ltr/rtl: Whether the test is for a left-to-right or right-to-left layout.
+     * 3) notRev/rev: Whether the layout is "reverse" from how it would normally layout. Eg in ltr
+     *    mode the side where the adapter item at index 0 would normally be laid out is left. But
+     *    in reversed mode, it is laid out on the right.
+     * 4) partVis/notVis: Whether the target item we want to scroll to is partially visible, or not
+     *    visible. The estimateShortestDistance decider has different behavior in these cases.
+     * 5) anchor/optAnchor: Refers to which side want the target to be aligned with after the scroll
+     *    is completed. If "anchor" that means we want the view to be aligned with the side where
+     *    the 0 adapter item was originally laid out. If "optAnchor", the opposite.
+     * 6) overSeam/inLoop: Whether in scrolling the items we should pass over the seam (where the
+     *    where the 0 item touches the last item), or stay within the loop. Only applies if notVis.
+     */
+
+    /*
+     * Note that for doing the "partVis" tests we only need two items.
+     * But for the "notVis" tests we need 3, because the decider assumes all views are the same size.
+     */
+
+    /*
+     * View naming info:
+     * T: Target view.
+     * F: Filler view
+     *   FB: Big filler (takes up screen or more)
+     *   FS: Small filler (takes up equal to target)
+     */
+
+    /*
+     * View diagram info:
+     * |: Denotes the edges of the screen. Eg |---- A ----| Shows that the "A" view takes up exactly
+     *    the size of the screen.
+     * -: Represents the size of the view. Eg ----- A ----- B - Shows that "A" is a large view and
+     *    "B" is a small one.
+     *
+     * Notes:
+     *   - Vertical recyclers are also diagrammed horizontally. Left = Top, Right = Bottom.
+     *   - Although some views are shown to be off screen, they may or may not actually exist.
+     *   - For testing purposes you can kind of imagine the layout having an infinite number of views
+     *     (in order) in either direction.
+     */
+
     @Test
-    fun defaultHorizontalPartiallyVisibleAtAnchor() {
-        val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+    fun horiz_ltr_notRev_partVis_anchor() {
+        setAdapter(arrayOf("T", "F"), arrayOf(TARGET_SIZE, fillerSize_partVis(HORIZ)))
+        // |- T ------ F -|----
+        val layoutManager = setLayoutManager(HORIZ, false)
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(x = targetVisiblePortion))
+                // Make T partially visible on the left.
+                // -|T ------ F --|---
+                .perform(RecyclerViewActions.scrollBy(x = TARGET_SIZE / 2))
+                // |- T ------ F -|----
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
-        onView(withText("0"))
+        onView(withText("T"))
                 .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
-    fun defaultHorizontalPartiallyVisibleAtOptAnchor() {
-        val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+    fun horiz_ltr_notRev_partVis_optAnchor() {
+        setAdapter(arrayOf("T", "F"), arrayOf(TARGET_SIZE, fillerSize_partVis(HORIZ)))
+        // |- T ------ F -|----
+        val layoutManager = setLayoutManager(HORIZ, false)
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(x = (targetSize + targetVisiblePortion)))
+                // Make T partially visible on the right.
+                // ---|-- F ------ T|-
+                .perform(RecyclerViewActions.scrollBy(x = (TARGET_SIZE + TARGET_SIZE / 2)))
+                // ----|- F ------ T -|
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
-        onView(withText("0"))
+        onView(withText("T"))
                 .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
-    fun defaultHorizontalNotVisibleAnchorWithin() {
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, fillerSize, otherViewSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+    fun horiz_ltr_notRev_notVis_anchor_inLoop() {
+        setAdapter(arrayOf("T", "FB", "FS"),
+                arrayOf(TARGET_SIZE, fillerSize_notVis(HORIZ), OTHER_SIZE))
+        // |- T ------ FB -|---- FS -
+        val layoutManager = setLayoutManager(HORIZ, false)
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(x = (targetSize + halfFillerViewExtraPortion)))
+                // - T |------ FB -----| FS -
+                .perform(RecyclerViewActions.scrollBy(x = TARGET_SIZE))
+                // |- T ------ FB -|---- FS -
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
-        onView(withText("0"))
-                .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
-        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
-    }
-
-    @Test
-    fun defaultHorizontalNotVisibleAnchorSeam() {
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(fillerSize, otherViewSize, targetSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
-        onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(x = halfFillerViewExtraPortion))
-                .perform(RecyclerViewActions.scrollToPositionViaManager(2))
-
-        onView(withText("2"))
-                .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
-        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
-    }
-
-    @Test
-    fun defaultHorizontalNotVisibleOptAnchorWithin() {
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(otherViewSize, fillerSize, targetSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
-        onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(x = (otherViewSize + halfFillerViewExtraPortion)))
-                .perform(RecyclerViewActions.scrollToPositionViaManager(2))
-
-        onView(withText("2"))
-                .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
-        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
-    }
-
-    @Test
-    fun defaultHorizontalNotVisibleOptAnchorSeam() {
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, otherViewSize, fillerSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
-        onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(
-                        x = (targetSize + otherViewSize + halfFillerViewExtraPortion)))
-                .perform(RecyclerViewActions.scrollToPositionViaManager(0))
-
-        onView(withText("0"))
-                .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
-        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
-    }
-
-    @Test
-    fun reverseHorizontalPartiallyVisibleAtAnchor() {
-        val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
-        onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(x = -targetVisiblePortion))
-                .perform(RecyclerViewActions.scrollToPositionViaManager(0))
-
-        onView(withText("0"))
-                .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
-        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
-    }
-
-    @Test
-    fun reverseHorizontalPartiallyVisibleAtOptAnchor() {
-        val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
-        onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(x = -(targetSize + targetVisiblePortion)))
-                .perform(RecyclerViewActions.scrollToPositionViaManager(0))
-
-        onView(withText("0"))
+        onView(withText("T"))
                 .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
-    fun reverseHorizontalNotVisibleAnchorWithin() {
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, fillerSize, otherViewSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+    fun horiz_ltr_notRev_notVis_anchor_overSeam() {
+        setAdapter(arrayOf("FB", "FS", "T"),
+                arrayOf(fillerSize_notVis(HORIZ), OTHER_SIZE, TARGET_SIZE))
+        // |------ FB ----|-- FS - T -
+        val layoutManager = setLayoutManager(HORIZ, false)
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(x = -(targetSize + halfFillerViewExtraPortion)))
-                .perform(RecyclerViewActions.scrollToPositionViaManager(0))
-
-        onView(withText("0"))
-                .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
-        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
-    }
-
-    @Test
-    fun reverseHorizontalNotVisibleAnchorSeam() {
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(fillerSize, otherViewSize, targetSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
-        onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(x = -halfFillerViewExtraPortion))
+                // Should move items right, crossing over the seam between FB (0) and T (2)
+                // |- T ------ FB -|---- FS
                 .perform(RecyclerViewActions.scrollToPositionViaManager(2))
 
-        onView(withText("2"))
-                .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
-        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
-    }
-
-    @Test
-    fun reverseHorizontalNotVisibleOptAnchorWithin() {
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(otherViewSize, fillerSize, targetSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
-        onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(x = -(otherViewSize + halfFillerViewExtraPortion)))
-                .perform(RecyclerViewActions.scrollToPositionViaManager(2))
-
-        onView(withText("2"))
+        onView(withText("T"))
                 .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
-    fun reverseHorizontalNotVisibleOptAnchorSeam() {
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, otherViewSize, fillerSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+    fun horiz_ltr_notRev_notVis_optAnchor_inLoop() {
+        setAdapter(arrayOf("FS", "FB", "T"),
+                arrayOf(OTHER_SIZE, fillerSize_notVis(HORIZ), OTHER_SIZE))
+        // |- FS ------ FB -|------ T -
+        val layoutManager = setLayoutManager(HORIZ, false)
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(
-                        x = -(targetSize + otherViewSize + halfFillerViewExtraPortion)))
-                .perform(RecyclerViewActions.scrollToPositionViaManager(0))
+                // Should move items left, even though this is technically further.
+                // - FS ----|- FB ------ T -|
+                .perform(RecyclerViewActions.scrollToPositionViaManager(2))
 
-        onView(withText("0"))
-                .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
-        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
+        onView(withText("T"))
+                .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 2)
     }
 
     @Test
-    fun defaultHorizontalRtlPartiallyVisibleAtAnchor() {
-        setRtl()
-        val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+    fun horiz_ltr_notRev_notVis_optAnchor_overSeam() {
+        setAdapter(arrayOf("T", "FS", "FB"),
+                arrayOf(TARGET_SIZE, OTHER_SIZE, fillerSize_notVis(HORIZ)))
+        // |- T - FS ----|- FB ------
+        val layoutManager = setLayoutManager(HORIZ, false)
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(x = -targetVisiblePortion))
+                // - T - FS | ----- FB ------|
+                .perform(RecyclerViewActions.scrollBy(x = TARGET_SIZE + OTHER_SIZE))
+                // Should move items left, crossing over the seam between FB (2) and T (0)
+                // - FS ----|- FB ------ T -|
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
-        onView(withText("0"))
+        onView(withText("T"))
+                .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
+    }
+
+    @Test
+    fun horiz_ltr_rev_partVis_anchor() {
+        setAdapter(arrayOf("T", "F"), arrayOf(TARGET_SIZE, fillerSize_partVis(HORIZ)))
+        // ----|- F ------ T -|
+        val layoutManager = setLayoutManager(HORIZ, true)
+        onView(withId(R.id.recycler))
+                // Make T only partially visible on the right.
+                // --|--- F ------ T|-
+                .perform(RecyclerViewActions.scrollBy(x = -TARGET_SIZE / 2))
+                // ----|- F ------ T -|
+                .perform(RecyclerViewActions.scrollToPositionViaManager(0))
+
+        onView(withText("T"))
                 .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
-    fun defaultHorizontalRtlPartiallyVisibleAtOptAnchor() {
-        setRtl()
-        val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+    fun horiz_ltr_rev_partVis_optAnchor() {
+        setAdapter(arrayOf("T", "F"), arrayOf(TARGET_SIZE, fillerSize_partVis(HORIZ)))
+        val layoutManager = setLayoutManager(HORIZ, true)
+        // ----|- F ------ T -|
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(x = -(targetSize + targetVisiblePortion)))
+                // Make T partially visible on the left.
+                // -|T ------ F ---|--
+                .perform(RecyclerViewActions.scrollBy(x = -(TARGET_SIZE + TARGET_SIZE / 2)))
+                // |- T ------ F -|----
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
-        onView(withText("0"))
+        onView(withText("T"))
                 .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
-    fun defaultHorizontalRtlNotVisibleAnchorWithin() {
-        setRtl()
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, fillerSize, otherViewSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+    fun horiz_ltr_rev_notVis_anchor_inLoop() {
+        setAdapter(arrayOf("T", "FB", "FS"),
+                arrayOf(TARGET_SIZE, fillerSize_notVis(HORIZ), OTHER_SIZE))
+        // - FS ----|- FB ------ T -|
+        val layoutManager = setLayoutManager(HORIZ, true)
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(x = -(targetSize + halfFillerViewExtraPortion)))
+                // - FS --|--- FB ------| T -
+                .perform(RecyclerViewActions.scrollBy(x = -TARGET_SIZE))
+                // - FS ----|- FB ------ T -|
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
-        onView(withText("0"))
+        onView(withText("T"))
                 .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
-    fun defaultHorizontalRtlNotVisibleAnchorSeam() {
-        setRtl()
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(fillerSize, otherViewSize, targetSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+    fun horiz_ltr_rev_notVis_anchor_overSeam() {
+        setAdapter(arrayOf("FB", "FS", "T"),
+                arrayOf(fillerSize_notVis(HORIZ), OTHER_SIZE, TARGET_SIZE))
+        //  T - FS --|--- FB ------|
+        val layoutManager = setLayoutManager(HORIZ, true)
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(x = -halfFillerViewExtraPortion))
+                // Should move items left, crossing over the seam between FB (0) and T (2)
+                // FS ----|- FB ------ T|
                 .perform(RecyclerViewActions.scrollToPositionViaManager(2))
 
-        onView(withText("2"))
+        onView(withText("T"))
                 .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
     }
 
     @Test
-    fun defaultHorizontalRtlNotVisibleOptAnchorWithin() {
-        setRtl()
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(otherViewSize, fillerSize, targetSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+    fun horiz_ltr_rev_notVis_optAnchor_inLoop() {
+        setAdapter(arrayOf("FS", "FB", "T"),
+                arrayOf(OTHER_SIZE, fillerSize_notVis(HORIZ), TARGET_SIZE))
+        // T -----|- FB ------ FS - |
+        val layoutManager = setLayoutManager(HORIZ, true)
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(x = -(otherViewSize + halfFillerViewExtraPortion)))
+                // Should move items right, even though the other way is technically shorter.
+                // |- T ------ FB -|---- FS
                 .perform(RecyclerViewActions.scrollToPositionViaManager(2))
 
-        onView(withText("2"))
+        onView(withText("T"))
                 .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
-        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
+        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
-    fun defaultHorizontalRtlNotVisibleOptAnchorSeam() {
-        setRtl()
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, otherViewSize, fillerSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+    fun horiz_ltr_rev_notVis_optAnchor_overSeam() {
+        setAdapter(arrayOf("T", "FS", "FB"),
+                arrayOf(TARGET_SIZE, OTHER_SIZE, fillerSize_notVis(HORIZ)))
+        // ------ FB --|--- FS - T -|
+        val layoutManager = setLayoutManager(HORIZ, true)
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(
-                        x = -(targetSize + otherViewSize + halfFillerViewExtraPortion)))
+                // |----- FB -----| - FS - T -
+                .perform(RecyclerViewActions.scrollBy(x = -(TARGET_SIZE + OTHER_SIZE)))
+                // Should move items right, crossing over the seam between FB (2) and T (0)
+                // |- T ------ FB -|---- FS -
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
-        onView(withText("0"))
+        onView(withText("T"))
                 .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
     }
 
     @Test
-    fun reverseHorizontalRtlPartiallyVisibleAtAnchor() {
+    fun horiz_rtl_notRev_partVis_anchor() {
         setRtl()
-        val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        setAdapter(arrayOf("T", "F"), arrayOf(TARGET_SIZE, fillerSize_partVis(HORIZ)))
+        // ----|- F ------ T -|
+        val layoutManager = setLayoutManager(HORIZ, false)
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(x = targetVisiblePortion))
+                // Make T partially visible on the right.
+                // --|--- F ----- T|-
+                .perform(RecyclerViewActions.scrollBy(x = -TARGET_SIZE / 2))
+                // ----|- F ------ T -|
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
-        onView(withText("0"))
+        onView(withText("T"))
+                .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
+    }
+
+    @Test
+    fun horiz_rtl_notRev_partVis_optAnchor() {
+        setRtl()
+        setAdapter(arrayOf("T", "F"), arrayOf(TARGET_SIZE, fillerSize_partVis(HORIZ)))
+        // ----|- F ------ T -|
+        val layoutManager = setLayoutManager(HORIZ, false)
+        onView(withId(R.id.recycler))
+                // Make T partially visible on the left.
+                // -|T ------ F ---|--
+                .perform(RecyclerViewActions.scrollBy(x = -(TARGET_SIZE + TARGET_SIZE / 2)))
+                // |- T ------ F -|----
+                .perform(RecyclerViewActions.scrollToPositionViaManager(0))
+
+        onView(withText("T"))
                 .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
-    fun reverseHorizontalRtlPartiallyVisibleAtOptAnchor() {
+    fun horiz_rtl_notRev_notVis_anchor_inLoop() {
         setRtl()
-        val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        setAdapter(arrayOf("T", "FB", "FS"),
+                arrayOf(TARGET_SIZE, fillerSize_notVis(HORIZ), OTHER_SIZE))
+        // - FS ----|- FB ------ T -|
+        val layoutManager = setLayoutManager(HORIZ, false)
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(x = (targetSize + targetVisiblePortion)))
+                // - FS --|--- FB -----| T -
+                .perform(RecyclerViewActions.scrollBy(x = -TARGET_SIZE))
+                // - FS ----|- FB ------ T -|
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
-        onView(withText("0"))
+        onView(withText("T"))
                 .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
-    fun reverseHorizontalRtlNotVisibleAnchorWithin() {
+    fun horiz_rtl_notRev_notVis_anchor_overSeam() {
         setRtl()
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, fillerSize, otherViewSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        setAdapter(arrayOf("FB", "FS", "T"),
+                arrayOf(fillerSize_notVis(HORIZ), OTHER_SIZE, TARGET_SIZE))
+        // - T - FS ---|--- FB ------|
+        val layoutManager = setLayoutManager(HORIZ, false)
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(x = (targetSize + halfFillerViewExtraPortion)))
+                // Should move items right, crossing over the seam between FB (0) and T (2)
+                // - FS ----|- FB ------ T -|
+                .perform(RecyclerViewActions.scrollToPositionViaManager(2))
+
+        onView(withText("T"))
+                .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
+    }
+
+    @Test
+    fun horiz_rtl_notRev_notVis_optAnchor_inLoop() {
+        setRtl()
+        setAdapter(arrayOf("FS", "FB", "T"),
+                arrayOf(OTHER_SIZE, fillerSize_notVis(HORIZ), TARGET_SIZE))
+        val layoutManager = setLayoutManager(HORIZ, false)
+        // - T -----|- FB ------ Fs -|
+        onView(withId(R.id.recycler))
+                // Should move items right, even though that is technically further.
+                // |- T ------ FB -|---- FS -
+                .perform(RecyclerViewActions.scrollToPositionViaManager(2))
+
+        onView(withText("T"))
+                .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 1)
+    }
+
+    @Test
+    fun horiz_rtl_notRev_notVis_optAnchor_overSeam() {
+        setRtl()
+        setAdapter(arrayOf("T", "FS", "FB"),
+                arrayOf(TARGET_SIZE, OTHER_SIZE, fillerSize_notVis(HORIZ)))
+        // ------ FB -|---- FS - T -|
+        val layoutManager = setLayoutManager(HORIZ, false)
+        onView(withId(R.id.recycler))
+                // --|--- FB ------| FS - T -
+                .perform(RecyclerViewActions.scrollBy(x = -(TARGET_SIZE + OTHER_SIZE)))
+                // Should move items right, crossing over the seam between FB (2) and T (0)
+                // |- T ------ FB -|---- FS
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
-        onView(withText("0"))
+        onView(withText("T"))
                 .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
     }
 
     @Test
-    fun reverseHorizontalRtlNotVisibleAnchorSeam() {
+    fun horiz_rtl_rev_partVis_anchor() {
         setRtl()
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(fillerSize, otherViewSize, targetSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        setAdapter(arrayOf("T", "F"), arrayOf(TARGET_SIZE, fillerSize_partVis(HORIZ)))
+        val layoutManager = setLayoutManager(HORIZ, true)
+        // |- T ------ F -|----
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(x = halfFillerViewExtraPortion))
+                // - T -|------ FB ------|
+                .perform(RecyclerViewActions.scrollBy(x = TARGET_SIZE / 2))
+                // |- T ------ F -|----
+                .perform(RecyclerViewActions.scrollToPositionViaManager(0))
+
+        onView(withText("T"))
+                .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
+    }
+
+    @Test
+    fun horiz_rtl_rev_partVis_optAnchor() {
+        setRtl()
+        setAdapter(arrayOf("T", "F"), arrayOf(TARGET_SIZE, fillerSize_partVis(HORIZ)))
+        val layoutManager = setLayoutManager(HORIZ, true)
+        // |- T ------ F -|----
+        onView(withId(R.id.recycler))
+                // Make T partially visible on the right.
+                // ---|-- F ------ T|-
+                .perform(RecyclerViewActions.scrollBy(x = TARGET_SIZE + TARGET_SIZE / 2))
+                // ----|- F ------ T -|
+                .perform(RecyclerViewActions.scrollToPositionViaManager(0))
+
+        onView(withText("T"))
+                .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
+    }
+
+    @Test
+    fun horiz_rtl_rev_notVis_anchor_inLoop() {
+        setRtl()
+        setAdapter(arrayOf("T", "FB", "FS"),
+                arrayOf(TARGET_SIZE, fillerSize_notVis(HORIZ), OTHER_SIZE))
+        // |- T ------ FB -|---- FS -
+        val layoutManager = setLayoutManager(HORIZ, true)
+        onView(withId(R.id.recycler))
+                // - T -|---- FB ------|- FS -
+                .perform(RecyclerViewActions.scrollBy(x = TARGET_SIZE))
+                // |- T ------ FB -|---- FS -
+                .perform(RecyclerViewActions.scrollToPositionViaManager(0))
+
+        onView(withText("T"))
+                .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
+    }
+
+    @Test
+    fun horiz_rtl_rev_notVis_anchor_overSeam() {
+        setRtl()
+        setAdapter(arrayOf("FB", "FS", "T"),
+                arrayOf(fillerSize_notVis(HORIZ), OTHER_SIZE, TARGET_SIZE))
+        val layoutManager = setLayoutManager(HORIZ, true)
+        // |------ FB ---|-- FS - T -
+        onView(withId(R.id.recycler))
+                // Should move items right, crossing over the seam between FB (0) and T (2)
+                // |- T ------ F -|---- FS -
                 .perform(RecyclerViewActions.scrollToPositionViaManager(2))
 
-        onView(withText("2"))
+        onView(withText("T"))
                 .check((::isLeftAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
-    fun reverseHorizontalRtlNotVisibleOptAnchorWithin() {
+    fun horiz_rtl_rev_notVis_optAnchor_inLoop() {
         setRtl()
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(otherViewSize, fillerSize, targetSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        setAdapter(arrayOf("FS", "FB", "T"),
+                arrayOf(OTHER_SIZE, fillerSize_notVis(HORIZ), TARGET_SIZE))
+        // |- FS ------ FB -|---- T -
+        val layoutManager = setLayoutManager(HORIZ, true)
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(x = (otherViewSize + halfFillerViewExtraPortion)))
+                // - FS -|----- FB -----|- T -
+                .perform(RecyclerViewActions.scrollBy(x = OTHER_SIZE))
+                // FS ----|- FB ------ T -|
                 .perform(RecyclerViewActions.scrollToPositionViaManager(2))
 
-        onView(withText("2"))
+        onView(withText("T"))
                 .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
-        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 2)
     }
 
     @Test
-    fun reverseHorizontalRtlNotVisibleOptAnchorSeam() {
+    fun horiz_rtl_rev_notVis_optAnchor_overSeam() {
         setRtl()
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.HORIZONTAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, otherViewSize, fillerSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        setAdapter(arrayOf("T", "FS", "FB"),
+                arrayOf(TARGET_SIZE, OTHER_SIZE, fillerSize_notVis(HORIZ)))
+        // |- T - FS ---|-- FB ------
+        val layoutManager = setLayoutManager(HORIZ, true)
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(
-                        x = (targetSize + otherViewSize + halfFillerViewExtraPortion)))
+                // - T - FS -|----- FB --|---
+                .perform(RecyclerViewActions.scrollBy(x = TARGET_SIZE + OTHER_SIZE ))
+                // Should move items left, crossing over the seam between FB (2) and T (0)
+                // - FS ----|- FB ------ T -|
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
-        onView(withText("0"))
+        onView(withText("T"))
                 .check((::isRightAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
-    fun defaultVerticalPartiallyVisibleAtAnchor() {
-        val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.VERTICAL)
-        setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, false)
+    fun vert_notRev_partVis_anchor() {
+        setAdapter(arrayOf("T", "F"), arrayOf(TARGET_SIZE, fillerSize_partVis(VERT)))
+        // |- T ------ F -|----
+        val layoutManager = setLayoutManager(VERT, false)
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(y = targetVisiblePortion))
+                // Make T partially visible at the top.
+                // -|T ------ F --|---
+                .perform(RecyclerViewActions.scrollBy(y = TARGET_SIZE / 2))
+                // |- T ------ F -|----
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
-        onView(withText("0"))
+        onView(withText("T"))
                 .check((::isTopAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
-    fun defaultVerticalPartiallyVisibleAtOptAnchor() {
-        val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.VERTICAL)
-        setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, false)
+    fun vert_notRev_partVis_optAnchor() {
+        setAdapter(arrayOf("T", "F"), arrayOf(TARGET_SIZE, fillerSize_partVis(VERT)))
+        val layoutManager = setLayoutManager(VERT, false)
+        // |- T ------ F -|----
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(y = (targetSize + targetVisiblePortion)))
+                // Make T partially visible at the bottom.
+                // ---|-- F ------ T|-
+                .perform(RecyclerViewActions.scrollBy(y = TARGET_SIZE + TARGET_SIZE / 2))
+                // ----|- F ------ T -|
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
-        onView(withText("0"))
+        onView(withText("T"))
                 .check((::isBottomAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
-    fun defaultVerticalNotVisibleAnchorWithin() {
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.VERTICAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, fillerSize, otherViewSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, false)
+    fun vert_notRev_notVis_anchor_inLoop() {
+        setAdapter(arrayOf("T", "FB", "FS"),
+                arrayOf(TARGET_SIZE, fillerSize_notVis(VERT), OTHER_SIZE))
+        // |- T ------ FB -|---- FS -
+        val layoutManager = setLayoutManager(VERT, false)
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(y = (targetSize + halfFillerViewExtraPortion)))
+                // - T |------ FB -----| FS -
+                .perform(RecyclerViewActions.scrollBy(y = TARGET_SIZE))
+                // |- T ------ FB -|---- FS -
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
-        onView(withText("0"))
-                .check((::isTopAlignedWithPadding)(withId(R.id.recycler)))
-        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
-    }
-
-    @Test
-    fun defaultVerticalNotVisibleAnchorSeam() {
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.VERTICAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(fillerSize, otherViewSize, targetSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, false)
-        onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(y = halfFillerViewExtraPortion))
-                .perform(RecyclerViewActions.scrollToPositionViaManager(2))
-
-        onView(withText("2"))
-                .check((::isTopAlignedWithPadding)(withId(R.id.recycler)))
-        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
-    }
-
-    @Test
-    fun defaultVerticalNotVisibleOptAnchorWithin() {
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.VERTICAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(otherViewSize, fillerSize, targetSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, false)
-        onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(y = (otherViewSize + halfFillerViewExtraPortion)))
-                .perform(RecyclerViewActions.scrollToPositionViaManager(2))
-
-        onView(withText("2"))
-                .check((::isBottomAlignedWithPadding)(withId(R.id.recycler)))
-        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
-    }
-
-    @Test
-    fun defaultVerticalNotVisibleOptAnchorSeam() {
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.VERTICAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, otherViewSize, fillerSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, false)
-        onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(
-                        y = (targetSize + otherViewSize + halfFillerViewExtraPortion)))
-                .perform(RecyclerViewActions.scrollToPositionViaManager(0))
-
-        onView(withText("0"))
-                .check((::isBottomAlignedWithPadding)(withId(R.id.recycler)))
-        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
-    }
-
-    @Test
-    fun reverseVerticalPartiallyVisibleAtAnchor() {
-        val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.VERTICAL)
-        setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, true)
-        onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(y = -targetVisiblePortion))
-                .perform(RecyclerViewActions.scrollToPositionViaManager(0))
-
-        onView(withText("0"))
-                .check((::isBottomAlignedWithPadding)(withId(R.id.recycler)))
-        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
-    }
-
-    @Test
-    fun reverseVerticalPartiallyVisibleAtOptAnchor() {
-        val fillerSize = calculateFillerSizeWhenPartiallyVisible(RecyclerView.VERTICAL)
-        setAdapter(arrayOf("0", "1"), arrayOf(targetSize, fillerSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, true)
-        onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(y = -(targetSize + targetVisiblePortion)))
-                .perform(RecyclerViewActions.scrollToPositionViaManager(0))
-
-        onView(withText("0"))
+        onView(withText("T"))
                 .check((::isTopAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
     }
 
     @Test
-    fun reverseVerticalNotVisibleAnchorWithin() {
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.VERTICAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, fillerSize, otherViewSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, true)
+    fun vert_notRev_notVis_anchor_overSeam() {
+        setAdapter(arrayOf("FB", "FS", "T"),
+                arrayOf(fillerSize_notVis(VERT), OTHER_SIZE, TARGET_SIZE))
+        // |------ FB ----|-- FS - T -
+        val layoutManager = setLayoutManager(VERT, false)
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(y = -(targetSize + halfFillerViewExtraPortion)))
-                .perform(RecyclerViewActions.scrollToPositionViaManager(0))
-
-        onView(withText("0"))
-                .check((::isBottomAlignedWithPadding)(withId(R.id.recycler)))
-        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
-    }
-
-    @Test
-    fun reverseVerticalNotVisibleAnchorSeam() {
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.VERTICAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(fillerSize, otherViewSize, targetSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, true)
-        onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(y = -halfFillerViewExtraPortion))
+                // |- T ------ FB -|---- FS
                 .perform(RecyclerViewActions.scrollToPositionViaManager(2))
 
-        onView(withText("2"))
-                .check((::isBottomAlignedWithPadding)(withId(R.id.recycler)))
-        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
-    }
-
-    @Test
-    fun reverseVerticalNotVisibleOptAnchorWithin() {
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.VERTICAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(otherViewSize, fillerSize, targetSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, true)
-        onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(y = -(otherViewSize + halfFillerViewExtraPortion)))
-                .perform(RecyclerViewActions.scrollToPositionViaManager(2))
-
-        onView(withText("2"))
+        onView(withText("T"))
                 .check((::isTopAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
     }
 
     @Test
-    fun reverseVerticalNotVisibleOptAnchorSeam() {
-        val fillerSize = calculateFillerSizeWhenNotVisible(RecyclerView.VERTICAL)
-        setAdapter(arrayOf("0", "1", "2"), arrayOf(targetSize, otherViewSize, fillerSize))
-        val layoutManager = setLayoutManager(LoopingLayoutManager.VERTICAL, true)
+    fun vert_notRev_notVis_optAnchor_inLoop() {
+        setAdapter(arrayOf("FS", "FB", "T"),
+                arrayOf(OTHER_SIZE, fillerSize_notVis(VERT), TARGET_SIZE))
+        // | - FS ------ FB -|------ T -
+        val layoutManager = setLayoutManager(VERT, false)
         onView(withId(R.id.recycler))
-                .perform(RecyclerViewActions.scrollBy(
-                        y = -(targetSize + otherViewSize + halfFillerViewExtraPortion)))
+                // Should move items up, even though this is technically further.
+                // - FS ----|- FB ------ T -|
+                .perform(RecyclerViewActions.scrollBy(y = OTHER_SIZE))
+                .perform(RecyclerViewActions.scrollToPositionViaManager(2))
+
+        onView(withText("T"))
+                .check((::isBottomAlignedWithPadding)(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 2)
+    }
+
+    @Test
+    fun vert_notRev_notVis_optAnchor_overSeam() {
+        setAdapter(arrayOf("T", "FS", "FB"),
+                arrayOf(TARGET_SIZE, OTHER_SIZE, fillerSize_notVis(VERT)))
+        // |- T - FS ----|- FB ------
+        val layoutManager = setLayoutManager(VERT, false)
+        onView(withId(R.id.recycler))
+                // - T - FS | ----- FB ------|
+                // Should move items up, crossing over the seam between FB (2) and T (0)
+                // - FS ----|- FB ------ T -|
+                .perform(RecyclerViewActions.scrollBy(y = TARGET_SIZE + OTHER_SIZE))
                 .perform(RecyclerViewActions.scrollToPositionViaManager(0))
 
-        onView(withText("0"))
+        onView(withText("T"))
+                .check((::isBottomAlignedWithPadding)(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 0)
+    }
+
+    @Test
+    fun vert_rev_partVis_anchor() {
+        setAdapter(arrayOf("T", "F"), arrayOf(TARGET_SIZE, fillerSize_partVis(VERT)))
+        val layoutManager = setLayoutManager(VERT, true)
+        // ----|- F ------ T -|
+        onView(withId(R.id.recycler))
+                // Make T only partially visible at the bottom.
+                // --|--- F ------ T|-
+                .perform(RecyclerViewActions.scrollBy(y = -TARGET_SIZE / 2))
+                // ----|- F ------ T -|
+                .perform(RecyclerViewActions.scrollToPositionViaManager(0))
+
+        onView(withText("T"))
+                .check((::isBottomAlignedWithPadding)(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
+    }
+
+    @Test
+    fun vert_rev_partVis_optAnchor() {
+        setAdapter(arrayOf("T", "F"), arrayOf(TARGET_SIZE, fillerSize_partVis(VERT)))
+        // ----|- F ------ T -|
+        val layoutManager = setLayoutManager(VERT, true)
+        onView(withId(R.id.recycler))
+                // Make T partially visible at the top.
+                // -|T ------ F ---|--
+                .perform(RecyclerViewActions.scrollBy(y = -(TARGET_SIZE + TARGET_SIZE / 2)))
+                // |- T ------ F -|----
+                .perform(RecyclerViewActions.scrollToPositionViaManager(0))
+
+        onView(withText("T"))
+                .check((::isTopAlignedWithPadding)(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 1)
+    }
+
+    @Test
+    fun vert_rev_notVis_anchor_inLoop() {
+        setAdapter(arrayOf("T", "FB", "FS"),
+                arrayOf(TARGET_SIZE, fillerSize_notVis(VERT), OTHER_SIZE))
+        // - FS ----|- FB ------ T -|
+        val layoutManager = setLayoutManager(VERT, true)
+        onView(withId(R.id.recycler))
+                // - FS --|--- FB ------| T -
+                .perform(RecyclerViewActions.scrollBy(y = -TARGET_SIZE))
+                // - FS ----|- FB ------ T -|
+                .perform(RecyclerViewActions.scrollToPositionViaManager(0))
+
+        onView(withText("T"))
+                .check((::isBottomAlignedWithPadding)(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 1 && layoutManager.bottomRightIndex == 0)
+    }
+
+    @Test
+    fun vert_rev_notVis_anchor_overSeam() {
+        setAdapter(arrayOf("FB", "FS", "T"),
+                arrayOf(fillerSize_notVis(VERT), OTHER_SIZE, TARGET_SIZE))
+        //  T - FS --|--- FB ------|
+        val layoutManager = setLayoutManager(VERT, true)
+        onView(withId(R.id.recycler))
+                // Should move items up, crossing over the seam between FB (0) and T (2)
+                // FS ----|- FB ------ T|
+                .perform(RecyclerViewActions.scrollToPositionViaManager(2))
+
+        onView(withText("T"))
+                .check((::isBottomAlignedWithPadding)(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
+    }
+
+    @Test
+    fun vert_rev_notVis_optAnchor_inLoop() {
+        setAdapter(arrayOf("FS", "FB", "T"),
+                arrayOf(OTHER_SIZE, fillerSize_notVis(VERT), TARGET_SIZE))
+        // T -----|- FB ------ FS - |
+        val layoutManager = setLayoutManager(VERT, true)
+        onView(withId(R.id.recycler))
+                // Should move items down, even though the other way is technically shorter.
+                // |- T ------ FB -|---- FS
+                .perform(RecyclerViewActions.scrollToPositionViaManager(2))
+
+        onView(withText("T"))
+                .check((::isTopAlignedWithPadding)(withId(R.id.recycler)))
+        assert(layoutManager.topLeftIndex == 2 && layoutManager.bottomRightIndex == 1)
+    }
+
+    @Test
+    fun vert_rev_notVis_optAnchor_overSeam() {
+        setAdapter(arrayOf("T", "FS", "FB"),
+                arrayOf(TARGET_SIZE, OTHER_SIZE, fillerSize_notVis(VERT)))
+        // ------ FB --|--- FS - T -|
+        val layoutManager = setLayoutManager(VERT, true)
+        onView(withId(R.id.recycler))
+                // |----- FB -----| - FS - T -
+                .perform(RecyclerViewActions.scrollBy(y = -(TARGET_SIZE + OTHER_SIZE )))
+                // Should move items down, crossing over the seam between FB (2) and T (0)
+                // |- T ------ FB -|---- FS -
+                .perform(RecyclerViewActions.scrollToPositionViaManager(0))
+
+        onView(withText("T"))
                 .check((::isTopAlignedWithPadding)(withId(R.id.recycler)))
         assert(layoutManager.topLeftIndex == 0 && layoutManager.bottomRightIndex == 2)
     }
 
-    fun calculateFillerSizeWhenPartiallyVisible(orientation: Int): Int {
+    fun fillerSize_partVis(orientation: Int): Int {
         val activity = activityRule.activity
         val linearLayout = activity.findViewById<LinearLayout>(R.id.main_activity) ?: return 0
-        return if (orientation == RecyclerView.HORIZONTAL) {
+        return if (orientation == HORIZ) {
             linearLayout.width
         } else {
             linearLayout.height
         }
     }
 
-    fun calculateFillerSizeWhenNotVisible(orientation: Int): Int {
+    fun fillerSize_notVis(orientation: Int): Int {
         val activity = activityRule.activity
         val linearLayout = activity.findViewById<LinearLayout>(R.id.main_activity) ?: return 0
-        return if (orientation == RecyclerView.HORIZONTAL) {
-            linearLayout.width + fillerViewExtraPortion
+        return if (orientation == HORIZ) {
+            linearLayout.width + EXTRA_FILLER_SIZE
         } else {
-            linearLayout.height + fillerViewExtraPortion
+            linearLayout.height + EXTRA_FILLER_SIZE
         }
     }
 }
