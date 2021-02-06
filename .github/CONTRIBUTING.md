@@ -29,14 +29,8 @@ use case or problem, and a plan of attack for how to tackle it. They're a good
 way to get more familiar with the project.
 
 [help-wanted][help-wanted] issues are also a good place to start, but they can be a
-bit more in-depth. Often they solve a larger problem than issues labled
+bit more in-depth. Often they solve a larger problem than issues labeled
 [good-first-issue][good-first-issue] or they involve some creative thinking and design.
-
-Currently we're working towards [release 0.4.0][milestone], which is a
-[minor version bump][semver], meaning it will include some new features!
-Namely functions that will allow people to create better animations using
-the LoopingLayoutManager (eg carousel animations). Please check out the
-[milestone][milestone] if you're interested in contributing =)
 
 ### :star2:Getting started
 
