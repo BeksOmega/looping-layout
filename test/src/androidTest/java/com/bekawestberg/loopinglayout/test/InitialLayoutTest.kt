@@ -18,6 +18,7 @@
 package com.bekawestberg.loopinglayout.test
 
 import android.view.View
+import androidx.recyclerview.widget.RecyclerView
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.NoMatchingViewException
 import androidx.test.espresso.ViewAssertion
@@ -32,6 +33,7 @@ import com.bekawestberg.loopinglayout.test.androidTest.utils.ViewAssertions.isBo
 import com.bekawestberg.loopinglayout.test.androidTest.utils.ViewAssertions.isLeftAlignedWithPadding
 import com.bekawestberg.loopinglayout.test.androidTest.utils.ViewAssertions.isRightAlignedWithPadding
 import com.bekawestberg.loopinglayout.test.androidTest.utils.ViewAssertions.isTopAlignedWithPadding
+import com.bekawestberg.loopinglayout.test.androidTest.utils.setAdapter
 import com.bekawestberg.loopinglayout.test.androidTest.utils.setLayoutManager
 import com.bekawestberg.loopinglayout.test.androidTest.utils.setRtl
 import org.hamcrest.Matcher
@@ -49,46 +51,70 @@ import org.junit.runner.RunWith
 @LargeTest
 class InitialLayoutTest {
 
-    internal var TAG = "ExampleInstrumentedTest"
+    internal var TAG = "InitialLayoutTest"
+    
+    private val HORIZ = LoopingLayoutManager.HORIZONTAL;
+    private val VERT = LoopingLayoutManager.VERTICAL;
+
 
     @get:Rule var activityRule = ActivityTestRule(ActivityGeneric::class.java)
 
+    /*
+     * Test naming info:
+     * 1) horiz/vert: Whether the test is for a horizontal or vertical layout.
+     * 2) ltr/rtl: Whether the test is for a left-to-right or right-to-left layout.
+     * 3) notRev/rev: Whether the layout is "reverse" from how it would normally layout. Eg in ltr
+     *    mode the side where the adapter item at index 0 would normally be laid out is left. But
+     *    in reversed mode, it is laid out on the right.
+     */
+
     @Test
-    fun defaultHorizontal() {
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+    fun horiz_ltr_notRev() {
+        setUpAdapter();
+        setLayoutManager(HORIZ, false)
         assertStartsLeft()
     }
 
     @Test
-    fun reverseHorizontal() {
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+    fun horiz_ltr_rev() {
+        setUpAdapter();
+        setLayoutManager(HORIZ, true)
         assertStartsRight()
     }
 
     @Test
-    fun defaultHorizontalRtl() {
+    fun horiz_rtl_notRev() {
+        setUpAdapter();
         setRtl()
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, false)
+        setLayoutManager(HORIZ, false)
         assertStartsRight()
     }
 
     @Test
-    fun reverseHorizontalRTL() {
+    fun horiz_rtl_rev() {
+        setUpAdapter();
         setRtl()
-        setLayoutManager(LoopingLayoutManager.HORIZONTAL, true)
+        setLayoutManager(HORIZ, true)
         assertStartsLeft()
     }
 
     @Test
-    fun defaultVertical() {
-        setLayoutManager(LoopingLayoutManager.VERTICAL, false)
+    fun vert_notRev() {
+        setUpAdapter();
+        setLayoutManager(VERT, false)
         assertStartsTop()
     }
 
     @Test
-    fun reverseVertical() {
-        setLayoutManager(LoopingLayoutManager.VERTICAL, true)
+    fun vert_rev() {
+        setUpAdapter();
+        setLayoutManager(VERT, true)
         assertStartsBottom()
+    }
+
+    private fun setUpAdapter() {
+        setAdapter(Array(16) { i -> i.toString()},
+                   Array(16) { i -> 250})
     }
 
     private fun matchExists(matcher: Matcher<View>): Boolean {
