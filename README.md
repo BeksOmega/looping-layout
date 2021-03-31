@@ -16,7 +16,7 @@ It lives at https://github.com/BeksOmega/looping-layout.
 Add the dependency to your build.gradle file.
 ```groovy
 dependencies {
-    implementation 'com.github.beksomega:loopinglayout:0.4.0'
+    implementation 'com.github.beksomega:loopinglayout:0.4.1'
 }
 ```
 
