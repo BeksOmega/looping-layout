@@ -33,6 +33,7 @@ import androidx.recyclerview.widget.OrientationHelper
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.LayoutManager
 import androidx.recyclerview.widget.RecyclerView.LayoutParams
+import java.lang.Math.min
 import kotlin.math.abs
 
 class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVectorProvider {
@@ -201,7 +202,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         var prevItem: ListItem? = null
         val size = if (orientation == HORIZONTAL) layoutWidth else layoutHeight
         var sizeFilled = 0
-        var index = layoutRequest.anchorIndex
+        var index = min(layoutRequest.anchorIndex, state.itemCount - 1)
         while (sizeFilled < size) {
             val view = createViewForIndex(index, movementDir, recycler)
             val item = getItemForView(movementDir, view)

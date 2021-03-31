@@ -31,7 +31,7 @@ class ActivityHorizontal : AppCompatActivity() {
             Array(16) { i -> i.toString()},
             Array(16) { i -> 250})
     private var mLayoutManager =
-            LoopingLayoutManager(this, RecyclerView.HORIZONTAL, true)
+            LoopingLayoutManager(this, RecyclerView.HORIZONTAL, false)
     private var snapHelper: SnapHelper? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,9 +50,8 @@ class ActivityHorizontal : AppCompatActivity() {
 
         val button = findViewById<FloatingActionButton>(R.id.fab)
         button.setOnClickListener {
-            mRecyclerView.scrollBy(250, 0)
-            /*mAdapter.updateData(arrayOf("0", "1", "2"), Array(16) { i -> 250 })
-            mAdapter.notifyDataSetChanged()*/
+            mAdapter.updateData(Array(10) { i -> i.toString()}, Array(10) { i -> 250 })
+            mAdapter.notifyDataSetChanged()
         }
     }
 }
