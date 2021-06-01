@@ -23,10 +23,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bekawestberg.loopinglayout.library.LoopingLayoutManager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
-class ActivityGeneric : AppCompatActivity() {
+class ActivityDiffUtil : AppCompatActivity() {
     private lateinit var mRecyclerView: RecyclerView
-    private var mAdapter: AdapterGeneric = AdapterGeneric(
-            arrayOf("0", "1", "2", "3", "4", "5", "6"/**/))
+    private var mAdapter: AdapterDiffUtil = AdapterDiffUtil()
     private var mLayoutManager =
             LoopingLayoutManager(this, LoopingLayoutManager.HORIZONTAL, false)
 
@@ -34,6 +33,10 @@ class ActivityGeneric : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         mRecyclerView = findViewById(R.id.recycler)
+
+        val list = ArrayList<AdapterDiffUtil.Data>()
+        list.addAll(Array(7) { i -> AdapterDiffUtil.Data(i, i.toString())});
+        mAdapter.setData(list);
 
         // use this setting to improve performance if you know that changes
         // in content do not change the layout size of the RecyclerView
@@ -43,7 +46,7 @@ class ActivityGeneric : AppCompatActivity() {
 
         val button = findViewById<FloatingActionButton>(R.id.fab)
         button.setOnClickListener {
-            mAdapter.updateData(Array(10) { i -> i.toString()}, Array(10) { i -> 250 })
+            mAdapter.setData(Array(10) { i -> AdapterDiffUtil.Data(i, i.toString())}.toList())
             mAdapter.notifyDataSetChanged()
         }
     }
