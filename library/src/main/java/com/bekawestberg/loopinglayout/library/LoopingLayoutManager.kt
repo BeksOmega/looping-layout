@@ -203,6 +203,12 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
         val size = if (orientation == HORIZONTAL) layoutWidth else layoutHeight
         var sizeFilled = 0
         var index = min(layoutRequest.anchorIndex, state.itemCount - 1)
+
+        if (index < 0) {
+            // nothing to layout
+            return
+        }
+
         while (sizeFilled < size) {
             val view = createViewForIndex(index, movementDir, recycler)
             val item = getItemForView(movementDir, view)
