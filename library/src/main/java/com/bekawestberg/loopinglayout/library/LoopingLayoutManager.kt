@@ -214,10 +214,34 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
 
             index = stepIndex(index, movementDir, state, false)
             if (sizeFilled == 0) {
-                sizeFilled = if (orientation == HORIZONTAL) {
-                    layoutRect.left
+                sizeFilled = if (reverseLayout) {
+                    if (isLayoutRTL) {
+                        if (orientation == HORIZONTAL) {
+                            layoutRect.left
+                        } else {
+                            layoutHeight - layoutRect.bottom
+                        }
+                    } else {
+                        if (orientation == HORIZONTAL) {
+                            layoutWidth - layoutRect.right
+                        } else {
+                            layoutHeight - layoutRect.bottom
+                        }
+                    }
                 } else {
-                    layoutRect.top
+                    if (isLayoutRTL) {
+                        if (orientation == HORIZONTAL) {
+                            layoutWidth - layoutRect.right
+                        } else {
+                            layoutRect.top
+                        }
+                    } else {
+                        if (orientation == HORIZONTAL) {
+                            layoutRect.left
+                        } else {
+                            layoutRect.top
+                        }
+                    }
                 }
             }
             sizeFilled += item.size
