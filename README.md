@@ -7,7 +7,7 @@ Unlike other solutions for creating a looping recycler, which involve modifying 
 project isolates all logic inside the LayoutManager. This allows your Adapter to be reused in other 
 non-looping layouts, and it better conforms to the MVC-like architecture provided by the RecyclerView.
 
-This project was original created and is maintained by [Beka Westberg][linked-in] (BeksOmega).
+This project was originally created and is maintained by [Beka Westberg][linked-in] (BeksOmega).
 
 It lives at https://github.com/BeksOmega/looping-layout.
 
