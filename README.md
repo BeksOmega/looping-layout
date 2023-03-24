@@ -114,7 +114,7 @@ see the [contribution guide][contributing].
 ## :question: Support 
 
 If you think you have found a bug definitely report it using the [issue template][issue-template]! Just be sure
-to search for for duplicate issues before reporting, as someone else may have already come across
+to search for duplicate issues before reporting, as someone else may have already come across
 your problem.
 
 If you have any questions about the project please feel free to message bekawestberg@gmail.com with
