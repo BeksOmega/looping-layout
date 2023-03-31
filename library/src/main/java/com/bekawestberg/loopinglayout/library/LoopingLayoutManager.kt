@@ -36,7 +36,7 @@ import androidx.recyclerview.widget.RecyclerView.LayoutParams
 import java.lang.Math.min
 import kotlin.math.abs
 
-class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVectorProvider {
+open class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVectorProvider {
 
     /**
      * Describes the way the layout should be... laid out. Anchor index, anchor edge, and scroll
