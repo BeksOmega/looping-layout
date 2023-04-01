@@ -36,7 +36,7 @@ import androidx.recyclerview.widget.RecyclerView.LayoutParams
 import java.lang.Math.min
 import kotlin.math.abs
 
-class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVectorProvider {
+open class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVectorProvider {
 
     /**
      * Describes the way the layout should be... laid out. Anchor index, anchor edge, and scroll
@@ -258,7 +258,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
     /**
      * Scrolls the list of views by the given [delta]. Creates and binds new views if necessary.
      * Whether to scroll horizontally or vertically is determined by the orientation.
-    * @return The actually distance scrolled. This will equal to delta unless the layout manager
+     * @return The actual distance scrolled. This will be equal to delta unless the layout manager
      * does not have children, in which case it will be zero. Other layout managers may
      * return less than the delta if they hit a bound, but the LoopingLayoutManager has no
      * bounds.
@@ -877,7 +877,7 @@ class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.ScrollVe
      *
      * The views could be scrolled in either direction to make the target visible, so you must pass
      * a [strategy] to determine which direction the recycler should be moved in. It should return
-     * either [TOWARD_TOP_LEFT] or [TOWARD_BOTTOM_RIGHT].
+     * either [TOWARDS_TOP_LEFT] or [TOWARDS_BOTTOM_RIGHT].
      *
      * Note that this change will not be reflected until the next layout call.
      */
