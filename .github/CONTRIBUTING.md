@@ -29,7 +29,7 @@ use case or problem, and a plan of attack for how to tackle it. They're a good
 way to get more familiar with the project.
 
 [help-wanted][help-wanted] issues are also a good place to start, but they can be a
-bit more in-depth. Often they solve a larger problem than issues labled
+bit more in-depth. Often they solve a larger problem than issues labeled
 [good-first-issue][good-first-issue] or they involve some creative thinking and design.
 
 ### :star2:Getting started
@@ -133,3 +133,5 @@ are always appreciated, no matter what form they come in =)
 [good-first-issue]: https://github.com/BeksOmega/looping-layout/issues?q=is%3Aissue+is%3Aopen+label%3Agood-first-issue
 [help-wanted]: https://github.com/BeksOmega/looping-layout/issues?q=is%3Aissue+is%3Aopen+label%3help-wanted
 [issue-template]: https://github.com/BeksOmega/looping-layout/issues/new/choose
+[semver]: https://semver.org/
+[milestone]: https://github.com/BeksOmega/looping-layout/milestone/1
