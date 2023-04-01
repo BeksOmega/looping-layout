@@ -86,7 +86,7 @@ object ViewAssertions {
                         .withViewMatcher(toView)
                         .withView1(matchedView)
                         .withView2(matchedViewIterator.next())
-                        .withOtherAmbiguousViews(*Iterators.toArray(matchedViewIterator, View::class.java))
+                        .withOtherAmbiguousViews(*(Iterators.toArray(matchedViewIterator, View::class.java) as Array<out View>))
                         .build()
             } else {
                 matchedView = matchedViewIterator.next()
