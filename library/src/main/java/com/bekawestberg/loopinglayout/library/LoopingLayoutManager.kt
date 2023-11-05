@@ -222,7 +222,7 @@ open class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.Scr
             var layoutRect = getNonScrollingEdges(view)
             layoutRect = prevItem?.getPositionOfItemFollowingSelf(item, layoutRect)
                 ?: item.getPositionOfSelfAsFirst(layoutRect, layoutRequest.scrollOffset)
-            layoutDecorated(
+            layoutDecoratedWithMargins(
                 view, layoutRect.left, layoutRect.top,
                 layoutRect.right, layoutRect.bottom
             )
@@ -305,7 +305,7 @@ open class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.Scr
                 val newItem = getItemForView(movementDir, newView)
                 var layoutRect = getNonScrollingEdges(newView)
                 layoutRect = selectedItem.getPositionOfItemFollowingSelf(newItem, layoutRect)
-                layoutDecorated(
+                layoutDecoratedWithMargins(
                     newView, layoutRect.left, layoutRect.top,
                     layoutRect.right, layoutRect.bottom
                 )
@@ -322,7 +322,7 @@ open class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.Scr
             val newItem = getItemForView(movementDir, newView)
             var layoutRect = getNonScrollingEdges(newView)
             layoutRect = selectedItem.getPositionOfItemFollowingSelf(newItem, layoutRect)
-            layoutDecorated(
+            layoutDecoratedWithMargins(
                 newView, layoutRect.left, layoutRect.top,
                 layoutRect.right, layoutRect.bottom
             )
@@ -1006,7 +1006,7 @@ open class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.Scr
             get() = getDecoratedRight(view)
 
         public override val size: Int
-            get() = getDecoratedMeasuredWidth(view)
+            get() = getDecoratedMeasuredWidthWithMargins(view)
 
         public override fun getPositionOfItemFollowingSelf(item: ListItem, rect: Rect): Rect {
             rect.left = followingEdge
@@ -1035,7 +1035,7 @@ open class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.Scr
             get() = getDecoratedBottom(view)
 
         public override val size: Int
-            get() = getDecoratedMeasuredHeight(view)
+            get() = getDecoratedMeasuredHeightWithMargins(view)
 
 
         public override fun getPositionOfItemFollowingSelf(item: ListItem, rect: Rect): Rect {
@@ -1063,7 +1063,7 @@ open class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.Scr
             get() = getDecoratedLeft(view)
 
         public override val size: Int
-            get() = getDecoratedMeasuredWidth(view)
+            get() = getDecoratedMeasuredWidthWithMargins(view)
 
         public override fun getPositionOfItemFollowingSelf(item: ListItem, rect: Rect): Rect {
             rect.right = followingEdge
@@ -1090,7 +1090,7 @@ open class LoopingLayoutManager : LayoutManager, RecyclerView.SmoothScroller.Scr
             get() = getDecoratedTop(view)
 
         public override val size: Int
-            get() = getDecoratedMeasuredHeight(view)
+            get() = getDecoratedMeasuredHeightWithMargins(view)
 
         public override fun getPositionOfItemFollowingSelf(item: ListItem, rect: Rect): Rect {
             rect.bottom = followingEdge
